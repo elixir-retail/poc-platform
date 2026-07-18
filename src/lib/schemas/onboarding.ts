@@ -28,12 +28,41 @@ const onboardingStatus = z.enum([
 	'suspended'
 ]);
 
+const contactEmail = z
+	.string()
+	.trim()
+	.email()
+	.max(160)
+	.transform((value) => value.toLowerCase());
+const contactPhone = z
+	.string()
+	.trim()
+	.max(32)
+	.optional()
+	.default('')
+	.transform((value) => value || null)
+	.refine((value) => value === null || value.length >= 7, {
+		message: 'Phone number must be at least 7 characters'
+	});
+
 export const overviewSchema = z.object({
 	overall_status: onboardingStatus,
 	kyc_status: verificationStatus,
 	kyb_status: verificationStatus,
 	preferred_language: z.enum(['en', 'hi', 'ta', 'te']),
 	country_code: countryCode,
+	primary_currency_code: currencyCode,
+	contact_email: contactEmail,
+	contact_phone: contactPhone
+});
+
+export const createOrganisationSchema = z.object({
+	legal_name: z.string().trim().min(2).max(160),
+	contact_email: contactEmail,
+	contact_phone: contactPhone,
+	entity_type: z.string().trim().min(2).max(80),
+	country_code: countryCode,
+	preferred_language: z.enum(['en', 'hi', 'ta', 'te']),
 	primary_currency_code: currencyCode
 });
 

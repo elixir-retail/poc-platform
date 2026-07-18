@@ -216,7 +216,9 @@ export async function applyMutation(
 				'kyb_status',
 				'preferred_language',
 				'country_code',
-				'primary_currency_code'
+				'primary_currency_code',
+				'contact_email',
+				'contact_phone'
 			] as const;
 			const patch = Object.fromEntries(
 				Object.entries(values).filter(([key]) => (allowed as readonly string[]).includes(key))

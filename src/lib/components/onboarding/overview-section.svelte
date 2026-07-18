@@ -97,6 +97,18 @@
 				<Card.Title>{organisation.primary_currency_code}</Card.Title>
 			</Card.Header>
 		</Card.Root>
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Description>{t(locale, 'onboarding.contact.email')}</Card.Description>
+				<Card.Title class="truncate text-base">{organisation.contact_email}</Card.Title>
+			</Card.Header>
+		</Card.Root>
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Description>{t(locale, 'onboarding.contact.phone')}</Card.Description>
+				<Card.Title>{organisation.contact_phone || '—'}</Card.Title>
+			</Card.Header>
+		</Card.Root>
 	</div>
 </div>
 
@@ -181,6 +193,25 @@
 					value={organisation.primary_currency_code}
 					maxlength={3}
 					required
+				/>
+			</div>
+			<div class="flex flex-col gap-2">
+				<Label for="overview_email">{t(locale, 'onboarding.contact.email')}</Label>
+				<Input
+					id="overview_email"
+					name="contact_email"
+					type="email"
+					value={organisation.contact_email}
+					required
+				/>
+			</div>
+			<div class="flex flex-col gap-2">
+				<Label for="overview_phone">{t(locale, 'onboarding.contact.phone')}</Label>
+				<Input
+					id="overview_phone"
+					name="contact_phone"
+					type="tel"
+					value={organisation.contact_phone ?? ''}
 				/>
 			</div>
 		</div>

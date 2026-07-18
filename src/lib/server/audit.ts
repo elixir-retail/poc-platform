@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type AuditWrite = {
-	orgUuid: string;
+	orgUuid?: string | null;
 	actorProfileUuid: string;
 	actorUserUuid: string;
 	action: string;
@@ -13,7 +13,7 @@ export type AuditWrite = {
 
 export async function writeAudit(supabase: SupabaseClient, input: AuditWrite): Promise<void> {
 	const { error } = await supabase.from('audit_event').insert({
-		org_uuid: input.orgUuid,
+		org_uuid: input.orgUuid ?? null,
 		actor_profile_uuid: input.actorProfileUuid,
 		action: input.action,
 		entity_type: input.entityType,

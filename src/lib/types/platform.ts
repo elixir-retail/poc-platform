@@ -45,6 +45,8 @@ export type OrganisationListItem = {
 	org_code: string;
 	legal_name: string;
 	trade_name: string | null;
+	contact_email: string;
+	contact_phone: string | null;
 	country_code: string;
 	preferred_language: string;
 	primary_currency_code: string;
@@ -156,10 +158,23 @@ export type OrganisationSummary = {
 	legal_name: string;
 	trade_name: string | null;
 	entity_type: string;
+	contact_email: string;
+	contact_phone: string | null;
 	country_code: string;
 	preferred_language: string;
 	primary_currency_code: string;
 	overall_status: OnboardingStatus;
 	kyc_status: VerificationStatus;
 	kyb_status: VerificationStatus;
+};
+
+export type PlatformUserListItem = {
+	profile_uuid: string;
+	user_uuid: string;
+	email: string;
+	display_name: string;
+	role: PlatformRole;
+	is_active: boolean;
+	created_at: string;
+	changed_at: string;
 };

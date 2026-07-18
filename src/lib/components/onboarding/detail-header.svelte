@@ -72,6 +72,12 @@
 						{t(locale, 'onboarding.column.orgId')}:
 						<span class="font-medium text-foreground">{organisation.org_code}</span>
 					</p>
+					<p class="truncate text-sm text-muted-foreground">
+						{organisation.contact_email}
+						{#if organisation.contact_phone}
+							· {organisation.contact_phone}
+						{/if}
+					</p>
 				</div>
 			</div>
 			<div class="flex flex-col items-start gap-2 lg:items-end">
@@ -87,7 +93,7 @@
 		</div>
 	</Card.Header>
 	<Card.Content class="space-y-4">
-		<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+		<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
 			<div class="rounded-lg border border-border p-3">
 				<p class="text-xs text-muted-foreground">{t(locale, 'onboarding.column.country')}</p>
 				<p class="font-medium">{organisation.country_code}</p>
@@ -99,6 +105,14 @@
 			<div class="rounded-lg border border-border p-3">
 				<p class="text-xs text-muted-foreground">{t(locale, 'onboarding.column.currency')}</p>
 				<p class="font-medium">{currencies || organisation.primary_currency_code}</p>
+			</div>
+			<div class="rounded-lg border border-border p-3">
+				<p class="text-xs text-muted-foreground">{t(locale, 'onboarding.contact.email')}</p>
+				<p class="truncate font-medium">{organisation.contact_email}</p>
+			</div>
+			<div class="rounded-lg border border-border p-3">
+				<p class="text-xs text-muted-foreground">{t(locale, 'onboarding.contact.phone')}</p>
+				<p class="font-medium">{organisation.contact_phone || '—'}</p>
 			</div>
 			<div class="rounded-lg border border-border p-3">
 				<p class="text-xs text-muted-foreground">{t(locale, 'onboarding.header.completion')}</p>

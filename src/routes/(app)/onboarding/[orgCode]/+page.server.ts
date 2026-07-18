@@ -34,6 +34,8 @@ const organisationSelect = `
 	legal_name,
 	trade_name,
 	entity_type,
+	contact_email,
+	contact_phone,
 	country_code,
 	preferred_language,
 	primary_currency_code,
@@ -99,7 +101,7 @@ async function getOrganisationSummary(
 	const { data, error: queryError } = await supabase
 		.from('organisation')
 		.select(
-			'organisation_uuid, org_code, legal_name, trade_name, entity_type, country_code, preferred_language, primary_currency_code, overall_status, kyc_status, kyb_status'
+			'organisation_uuid, org_code, legal_name, trade_name, entity_type, contact_email, contact_phone, country_code, preferred_language, primary_currency_code, overall_status, kyc_status, kyb_status'
 		)
 		.eq('org_code', orgCode)
 		.single();
