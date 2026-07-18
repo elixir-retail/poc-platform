@@ -1,0 +1,16 @@
+---
+description: Supabase access patterns in SvelteKit
+globs: src/lib/server/**,src/hooks.server.ts,src/routes/**
+alwaysApply: false
+---
+
+# Data access rules
+
+- Per-request Supabase client via @supabase/ssr in hooks.server.ts,
+  exposed on event.locals (locals.supabase, locals.safeGetSession)
+- Reads in +page.server.ts load functions; writes in form actions.
+  No client-side writes to database tables.
+- Service-role key only in src/lib/server, only for platform-operator
+  functions. Never import server modules into client code.
+- Env via $env/static/private and $env/static/public — never process.env
+- Validate all form action inputs (zod) before touching the database

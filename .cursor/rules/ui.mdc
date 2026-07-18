@@ -1,0 +1,26 @@
+---
+description: UI, styling, and component conventions
+globs: src/**
+alwaysApply: true
+---
+
+# UI conventions
+
+- Use shadcn-svelte components from $lib/components/ui — do not hand-roll
+  buttons, dialogs, tables, dropdowns. If a needed component is missing,
+  say so and suggest `npx shadcn-svelte@latest add <name>`.
+- Styling: Tailwind utility classes referencing theme tokens only
+  (bg-background, text-foreground, bg-primary, text-muted-foreground,
+  border-border, etc). NEVER hardcode hex/oklch values or arbitrary
+  color classes like bg-[#1E2A78]. The theme lives in src/app.css and
+  is customized via TweakCN — treat it as the single source of truth.
+- Tailwind v4: there is no tailwind.config.js. Do not create one.
+  Theme extensions go in the @theme block in src/app.css.
+- Responsive-first: every screen must work at 360px, 768px, and 1280px.
+  Use the shadcn sidebar component's built-in mobile behavior for nav.
+- Dark mode via the .dark class (mode-watcher). Never use
+  prefers-color-scheme media queries directly in components.
+- Svelte 5 runes only: $state, $derived, $effect, $props. No legacy
+  export let, no $: reactive statements, no writable stores for
+  component state.
+  

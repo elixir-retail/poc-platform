@@ -1,0 +1,16 @@
+---
+description: Database schema and migration conventions
+globs: supabase/**
+alwaysApply: true
+---
+
+# Database conventions (SAP-style)
+
+- snake_case; singular table names
+- Every table: `<table>_uuid` UUID PK (gen_random_uuid()), `mandt`,
+  `created_by`, `created_at`, `changed_by`, `changed_at`
+- Tenant tables include `org_uuid` and get an RLS policy in the SAME
+  migration that creates the table
+- Migrations: forward-only SQL in supabase/migrations/,
+  YYYYMMDDHHMMSS_description.sql. Never edit an applied migration.
+- Business logic in application code, not triggers
