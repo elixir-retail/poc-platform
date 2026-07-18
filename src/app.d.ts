@@ -1,4 +1,5 @@
 import type { Locale } from '$lib/i18n';
+import type { PlatformProfile } from '$lib/types/platform';
 import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -15,6 +16,7 @@ declare global {
 			session: Session | null;
 			user: User | null;
 			locale: Locale;
+			profile: PlatformProfile | null;
 		}
 		// interface PageState {}
 		// interface Platform {}

@@ -21,5 +21,11 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	// Use the server-validated session/user from +layout.server.ts.
 	// Avoid calling getSession() here on the server — reading session.user from
 	// cookie storage is what triggers the insecure-user warning.
-	return { session: data.session, supabase, user: data.user, locale: data.locale };
+	return {
+		session: data.session,
+		supabase,
+		user: data.user,
+		profile: data.profile,
+		locale: data.locale
+	};
 };

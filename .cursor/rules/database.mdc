@@ -7,7 +7,7 @@ alwaysApply: true
 # Database conventions (SAP-style)
 
 - snake_case; singular table names
-- Every table: `<table>_uuid` UUID PK (gen_random_uuid()), `mandt`,
+- Every table: `<table>_uuid` UUID PK (gen_random_uuid()),
   `created_by`, `created_at`, `changed_by`, `changed_at`
 - Tenant tables include `org_uuid` and get an RLS policy in the SAME
   migration that creates the table
