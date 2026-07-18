@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { loginSchema } from '$lib/schemas/auth';
+import { loginSchema, toLoginErrorCode } from '$lib/schemas/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { safeGetSession } }) => {
@@ -21,7 +21,7 @@ export const actions: Actions = {
 		if (!parsed.success) {
 			return fail(400, {
 				email: String(formData.get('email') ?? ''),
-				error: parsed.error.issues[0]?.message ?? 'Invalid credentials'
+				errorCode: toLoginErrorCode(parsed.error.issues[0]?.message)
 			});
 		}
 
@@ -30,7 +30,7 @@ export const actions: Actions = {
 		if (error) {
 			return fail(400, {
 				email: parsed.data.email,
-				error: error.message
+				errorCode: 'invalidCredentials' as const
 			});
 		}
 

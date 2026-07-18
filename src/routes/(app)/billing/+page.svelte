@@ -1,4 +1,13 @@
+<script lang="ts">
+	import { page } from '$app/state';
+	import { t, type Locale } from '$lib/i18n';
+
+	const locale = $derived(page.data.locale as Locale);
+</script>
+
 <div class="flex flex-col gap-2">
-	<h1 class="text-foreground text-2xl font-semibold tracking-tight">Billing</h1>
-	<p class="text-muted-foreground text-sm">Subscription and billing views will appear here.</p>
+	<h1 class="text-2xl font-semibold tracking-tight text-foreground">
+		{t(locale, 'billing.title')}
+	</h1>
+	<p class="text-sm text-muted-foreground">{t(locale, 'billing.description')}</p>
 </div>

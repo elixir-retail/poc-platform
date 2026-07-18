@@ -6,25 +6,39 @@
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import { page } from '$app/state';
+	import LocaleSwitcher from '$lib/components/locale-switcher.svelte';
 	import ModeToggle from '$lib/components/mode-toggle.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Sidebar from '$lib/components/ui/sidebar';
+	import { t, type Locale, type MessageKey } from '$lib/i18n';
 	import type { User } from '@supabase/supabase-js';
 
 	type NavItem = {
-		title: string;
+		titleKey: MessageKey;
 		href: string;
 		icon: typeof LayoutDashboardIcon;
 	};
 
-	let { user }: { user: User | null } = $props();
+	let {
+		user,
+		locale,
+		toggleLabel,
+		sidebarTitle,
+		sidebarDescription
+	}: {
+		user: User | null;
+		locale: Locale;
+		toggleLabel: string;
+		sidebarTitle: string;
+		sidebarDescription: string;
+	} = $props();
 
 	const navItems: NavItem[] = [
-		{ title: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
-		{ title: 'Organizations', href: '/organizations', icon: Building2Icon },
-		{ title: 'Billing', href: '/billing', icon: CreditCardIcon },
-		{ title: 'Users', href: '/users', icon: UsersIcon },
-		{ title: 'Audit log', href: '/audit', icon: ClipboardListIcon }
+		{ titleKey: 'nav.dashboard', href: '/', icon: LayoutDashboardIcon },
+		{ titleKey: 'nav.organizations', href: '/organizations', icon: Building2Icon },
+		{ titleKey: 'nav.billing', href: '/billing', icon: CreditCardIcon },
+		{ titleKey: 'nav.users', href: '/users', icon: UsersIcon },
+		{ titleKey: 'nav.audit', href: '/audit', icon: ClipboardListIcon }
 	];
 
 	const pathname = $derived(page.url.pathname);
@@ -35,27 +49,27 @@
 	}
 </script>
 
-<Sidebar.Root collapsible="icon">
+<Sidebar.Root collapsible="icon" {sidebarTitle} {sidebarDescription}>
 	<Sidebar.Header>
 		<a href="/" class="flex items-center gap-2 px-2 py-1.5">
-			<span class="text-sidebar-foreground truncate text-sm font-semibold">Platform</span>
+			<span class="truncate text-sm font-semibold text-sidebar-foreground">
+				{t(locale, 'app.platform')}
+			</span>
 		</a>
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<Sidebar.Group>
-			<Sidebar.GroupLabel>Navigation</Sidebar.GroupLabel>
+			<Sidebar.GroupLabel>{t(locale, 'app.navigation')}</Sidebar.GroupLabel>
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					{#each navItems as item (item.href)}
+						{@const title = t(locale, item.titleKey)}
 						<Sidebar.MenuItem>
-							<Sidebar.MenuButton
-								isActive={isActive(item.href)}
-								tooltipContent={item.title}
-							>
+							<Sidebar.MenuButton isActive={isActive(item.href)} tooltipContent={title}>
 								{#snippet child({ props })}
 									<a href={item.href} {...props}>
 										<item.icon />
-										<span>{item.title}</span>
+										<span>{title}</span>
 									</a>
 								{/snippet}
 							</Sidebar.MenuButton>
@@ -66,19 +80,20 @@
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<div class="flex items-center gap-1 px-1">
-			<div class="min-w-0 flex-1 px-1">
-				<p class="text-sidebar-foreground truncate text-xs font-medium">
-					{user?.email ?? 'Signed in'}
-				</p>
+		<div class="flex flex-col gap-2 px-1">
+			<p class="truncate px-1 text-xs font-medium text-sidebar-foreground">
+				{user?.email ?? t(locale, 'app.signedIn')}
+			</p>
+			<div class="flex items-center gap-1">
+				<LocaleSwitcher {locale} />
+				<ModeToggle {locale} />
+				<form method="POST" action="/logout">
+					<Button type="submit" variant="ghost" size="icon" aria-label={t(locale, 'app.signOut')}>
+						<LogOutIcon />
+					</Button>
+				</form>
 			</div>
-			<ModeToggle />
-			<form method="POST" action="/logout">
-				<Button type="submit" variant="ghost" size="icon" aria-label="Sign out">
-					<LogOutIcon />
-				</Button>
-			</form>
 		</div>
 	</Sidebar.Footer>
-	<Sidebar.Rail />
+	<Sidebar.Rail {toggleLabel} />
 </Sidebar.Root>

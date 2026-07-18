@@ -1,0 +1,43 @@
+import type { Messages } from './en';
+
+export const te: Messages = {
+	'app.platform': 'ప్లాట్‌ఫారమ్',
+	'app.operatorDashboard': 'ఆపరేటర్ డాష్‌బోర్డ్',
+	'app.navigation': 'నావిగేషన్',
+	'app.signedIn': 'సైన్ ఇన్ అయ్యారు',
+	'app.signOut': 'సైన్ అవుట్',
+	'app.toggleSidebar': 'సైడ్‌బార్‌ను మార్చు',
+	'app.sidebar': 'సైడ్‌బార్',
+	'app.sidebarDescription': 'మొబైల్ సైడ్‌బార్‌ను ప్రదర్శిస్తుంది.',
+	'app.language': 'భాష',
+	'nav.dashboard': 'డాష్‌బోర్డ్',
+	'nav.organizations': 'సంస్థలు',
+	'nav.billing': 'బిల్లింగ్',
+	'nav.users': 'వినియోగదారులు',
+	'nav.audit': 'ఆడిట్ లాగ్',
+	'theme.toggle': 'డార్క్ మోడ్‌ను మార్చు',
+	'theme.toLight': 'లైట్ మోడ్‌కు మార్చు',
+	'theme.toDark': 'డార్క్ మోడ్‌కు మార్చు',
+	'login.title': 'సైన్ ఇన్',
+	'login.description': 'ప్లాట్‌ఫారమ్ ఆపరేటర్ డాష్‌బోర్డ్',
+	'login.email': 'ఇమెయిల్',
+	'login.password': 'పాస్‌వర్డ్',
+	'login.submit': 'సైన్ ఇన్',
+	'login.error.invalidEmail': 'చెల్లుబాటు అయ్యే ఇమెయిల్ చిరునామాను నమోదు చేయండి',
+	'login.error.passwordRequired': 'పాస్‌వర్డ్ అవసరం',
+	'login.error.invalidCredentials': 'చెల్లని ఇమెయిల్ లేదా పాస్‌వర్డ్',
+	'login.error.generic': 'సైన్ ఇన్ చేయలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి.',
+	'dashboard.title': 'డాష్‌బోర్డ్',
+	'dashboard.welcome':
+		'స్వాగతం, {email}. మర్చంట్ ఆన్‌బోర్డింగ్, బిల్లింగ్, యాక్సెస్ మరియు ఆడిట్ వ్యూలు ఇక్కడ వస్తాయి.',
+	'dashboard.welcomeAnonymous':
+		'స్వాగతం. మర్చంట్ ఆన్‌బోర్డింగ్, బిల్లింగ్, యాక్సెస్ మరియు ఆడిట్ వ్యూలు ఇక్కడ వస్తాయి.',
+	'organizations.title': 'సంస్థలు',
+	'organizations.description': 'మర్చంట్ మరియు సంస్థ ఆన్‌బోర్డింగ్ ఇక్కడ కనిపిస్తుంది.',
+	'billing.title': 'బిల్లింగ్',
+	'billing.description': 'సబ్‌స్క్రిప్షన్ మరియు బిల్లింగ్ వ్యూలు ఇక్కడ కనిపిస్తాయి.',
+	'users.title': 'వినియోగదారులు',
+	'users.description': 'వినియోగదారు యాక్సెస్ నిర్వహణ ఇక్కడ కనిపిస్తుంది.',
+	'audit.title': 'ఆడిట్ లాగ్',
+	'audit.description': 'ప్లాట్‌ఫారమ్ ఆడిట్ ఈవెంట్‌లు ఇక్కడ కనిపిస్తాయి.'
+};
