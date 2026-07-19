@@ -10,6 +10,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import * as Pagination from '$lib/components/ui/pagination';
 	import * as Select from '$lib/components/ui/select';
 	import * as Table from '$lib/components/ui/table';
 	import { t, type Locale } from '$lib/i18n';
@@ -18,6 +19,11 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	const locale = $derived(data.locale as Locale);
+	const pagination = $derived(data.pagination);
+	const rangeFrom = $derived(
+		pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.perPage + 1
+	);
+	const rangeTo = $derived(Math.min(pagination.page * pagination.perPage, pagination.total));
 
 	let createOpen = $state(false);
 	let preferredLanguage = $state('en');
@@ -40,6 +46,13 @@
 
 	function openOrganisation(orgCode: string) {
 		goto(resolve(`/onboarding/${orgCode}` as '/onboarding/[orgCode]'));
+	}
+
+	function goToPage(nextPage: number) {
+		goto(
+			resolve((nextPage <= 1 ? '/onboarding' : `/onboarding?page=${nextPage}`) as '/onboarding'),
+			{ keepFocus: true, noScroll: true }
+		);
 	}
 </script>
 
@@ -74,7 +87,16 @@
 		<Card.Header>
 			<Card.Title>{t(locale, 'onboarding.organisations')}</Card.Title>
 			<Card.Description>
-				{t(locale, 'onboarding.records', { count: data.organisations.length })}
+				{t(locale, 'onboarding.records', { count: pagination.total })}
+				{#if pagination.total > 0}
+					<span class="text-muted-foreground">
+						· {t(locale, 'onboarding.pagination.showing', {
+							from: rangeFrom,
+							to: rangeTo,
+							total: pagination.total
+						})}
+					</span>
+				{/if}
 			</Card.Description>
 		</Card.Header>
 		<Card.Content class="px-0">
@@ -153,6 +175,40 @@
 				</Table.Root>
 			</div>
 		</Card.Content>
+		{#if pagination.total > pagination.perPage}
+			<Card.Footer class="justify-center border-t border-border pt-4">
+				<Pagination.Root
+					count={pagination.total}
+					perPage={pagination.perPage}
+					page={pagination.page}
+					onPageChange={goToPage}
+				>
+					{#snippet children({ pages, currentPage })}
+						<Pagination.Content>
+							<Pagination.Item>
+								<Pagination.Previous />
+							</Pagination.Item>
+							{#each pages as pageItem (pageItem.key)}
+								{#if pageItem.type === 'ellipsis'}
+									<Pagination.Item>
+										<Pagination.Ellipsis />
+									</Pagination.Item>
+								{:else}
+									<Pagination.Item>
+										<Pagination.Link page={pageItem} isActive={currentPage === pageItem.value}>
+											{pageItem.value}
+										</Pagination.Link>
+									</Pagination.Item>
+								{/if}
+							{/each}
+							<Pagination.Item>
+								<Pagination.Next />
+							</Pagination.Item>
+						</Pagination.Content>
+					{/snippet}
+				</Pagination.Root>
+			</Card.Footer>
+		{/if}
 	</Card.Root>
 </div>
 
@@ -173,13 +229,27 @@
 		</div>
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div class="flex flex-col gap-2">
-				<Label for="contact_email">{t(locale, 'onboarding.contact.email')}</Label>
+				<Label for="contact_email">{t(locale, 'onboarding.create.rootEmail')}</Label>
 				<Input id="contact_email" name="contact_email" type="email" required />
 			</div>
 			<div class="flex flex-col gap-2">
 				<Label for="contact_phone">{t(locale, 'onboarding.contact.phone')}</Label>
 				<Input id="contact_phone" name="contact_phone" type="tel" placeholder="+91…" />
 			</div>
+		</div>
+		<div class="flex flex-col gap-2">
+			<Label for="temporary_password">{t(locale, 'onboarding.create.temporaryPassword')}</Label>
+			<Input
+				id="temporary_password"
+				name="temporary_password"
+				type="password"
+				minlength={8}
+				autocomplete="new-password"
+				required
+			/>
+			<p class="text-xs text-muted-foreground">
+				{t(locale, 'onboarding.create.temporaryPasswordHint')}
+			</p>
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label for="entity_type">{t(locale, 'onboarding.legal.entityType')}</Label>

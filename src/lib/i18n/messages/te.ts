@@ -1,6 +1,25 @@
 import type { Messages } from './en';
 
 export const te: Messages = {
+	'billing.title': 'బిల్లింగ్',
+	'billing.description':
+		'వాణిజ్య ప్లాన్‌లను నిర్వహించి, ఉచిత యాక్సెస్‌తో సహా సంస్థ బిల్లింగ్ స్థితిని ట్రాక్ చేయండి.',
+	'onboarding.pagination.showing': '{total}లో {from}–{to} చూపిస్తున్నాం',
+	'profile.title': 'ప్రొఫైల్ సెట్టింగ్‌లు',
+	'profile.description': 'మీ అవతార్‌ను నిర్వహించండి మరియు ఖాతా వివరాలను చూడండి.',
+	'profile.avatarTitle': 'అవతార్',
+	'profile.avatarDescription':
+		'చిత్రాన్ని అప్‌లోడ్ చేయండి; లేకపోతే మీ పేరు మొదటి అక్షరాలు చూపబడతాయి.',
+	'profile.uploadLabel': 'కొత్త అవతార్ చిత్రం',
+	'profile.uploadHint': 'PNG, JPEG లేదా WebP, గరిష్ఠంగా 2 MB.',
+	'profile.uploadButton': 'అవతార్ అప్‌లోడ్ చేయండి',
+	'profile.removeButton': 'అవతార్ తొలగించండి',
+	'profile.accountTitle': 'ఖాతా',
+	'profile.accountDescription': 'ఈ వివరాలను ప్లాట్‌ఫారమ్ నిర్వాహకులు నిర్వహిస్తారు.',
+	'profile.nameLabel': 'పేరు',
+	'profile.emailLabel': 'ఇమెయిల్',
+	'profile.roleLabel': 'పాత్ర',
+
 	'app.platform': 'ప్లాట్‌ఫారమ్',
 	'app.operatorDashboard': 'ఆపరేటర్ డాష్‌బోర్డ్',
 	'app.navigation': 'నావిగేషన్',
@@ -35,8 +54,6 @@ export const te: Messages = {
 		'స్వాగతం. మర్చంట్ ఆన్‌బోర్డింగ్, బిల్లింగ్, యాక్సెస్ మరియు ఆడిట్ వ్యూలు ఇక్కడ వస్తాయి.',
 	'organizations.title': 'సంస్థలు',
 	'organizations.description': 'మర్చంట్ మరియు సంస్థ ఆన్‌బోర్డింగ్ ఇక్కడ కనిపిస్తుంది.',
-	'billing.title': 'బిల్లింగ్',
-	'billing.description': 'సబ్‌స్క్రిప్షన్ మరియు బిల్లింగ్ వ్యూలు ఇక్కడ కనిపిస్తాయి.',
 	'users.title': 'వినియోగదారులు',
 	'users.description': 'ప్లాట్‌ఫారమ్ ఆపరేటర్ మరియు అడ్మిన్ యాక్సెస్‌ను సృష్టించి నిర్వహించండి.',
 	'users.create.button': 'వినియోగదారుని జోడించండి',

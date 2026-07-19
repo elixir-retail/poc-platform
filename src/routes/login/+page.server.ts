@@ -1,11 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { loginSchema, toLoginErrorCode } from '$lib/schemas/auth';
+import { resolveAuthenticatedDestination } from '$lib/server/organisation-auth';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals: { safeGetSession } }) => {
-	const { session } = await safeGetSession();
+export const load: PageServerLoad = async ({ locals: { safeGetSession, supabase } }) => {
+	const { session, user } = await safeGetSession();
 	if (session) {
-		redirect(303, '/');
+		redirect(303, await resolveAuthenticatedDestination(supabase, user));
 	}
 	return {};
 };
@@ -25,7 +26,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const { error } = await supabase.auth.signInWithPassword(parsed.data);
+		const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
 		if (error) {
 			return fail(400, {
@@ -34,6 +35,6 @@ export const actions: Actions = {
 			});
 		}
 
-		redirect(303, '/');
+		redirect(303, await resolveAuthenticatedDestination(supabase, data.user));
 	}
 };

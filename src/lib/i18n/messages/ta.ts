@@ -1,6 +1,25 @@
 import type { Messages } from './en';
 
 export const ta: Messages = {
+	'billing.title': 'பில்லிங்',
+	'billing.description':
+		'வணிகத் திட்டங்களை நிர்வகித்து, இலவச அணுகல் உட்பட நிறுவன பில்லிங் நிலையைக் கண்காணிக்கவும்.',
+	'onboarding.pagination.showing': '{total}-இல் {from}–{to} காட்டப்படுகிறது',
+	'profile.title': 'சுயவிவர அமைப்புகள்',
+	'profile.description': 'உங்கள் அவதாரத்தை நிர்வகித்து கணக்கு விவரங்களைப் பார்க்கவும்.',
+	'profile.avatarTitle': 'அவதாரம்',
+	'profile.avatarDescription':
+		'படத்தைப் பதிவேற்றவும்; இல்லையெனில் உங்கள் பெயரின் முதல் எழுத்துகள் காட்டப்படும்.',
+	'profile.uploadLabel': 'புதிய அவதாரப் படம்',
+	'profile.uploadHint': 'PNG, JPEG அல்லது WebP, அதிகபட்சம் 2 MB.',
+	'profile.uploadButton': 'அவதாரத்தைப் பதிவேற்று',
+	'profile.removeButton': 'அவதாரத்தை நீக்கு',
+	'profile.accountTitle': 'கணக்கு',
+	'profile.accountDescription': 'இந்த விவரங்கள் பிளாட்ஃபார்ம் நிர்வாகிகளால் நிர்வகிக்கப்படுகின்றன.',
+	'profile.nameLabel': 'பெயர்',
+	'profile.emailLabel': 'மின்னஞ்சல்',
+	'profile.roleLabel': 'பங்கு',
+
 	'app.platform': 'தளம்',
 	'app.operatorDashboard': 'ஆபரேட்டர் டாஷ்போர்டு',
 	'app.navigation': 'வழிசெலுத்தல்',
@@ -41,8 +60,6 @@ export const ta: Messages = {
 	'organizations.title': 'நிறுவனங்கள்',
 	'organizations.description': 'வணிகர் மற்றும் நிறுவன ஆன்போர்டிங் இங்கே தோன்றும்.',
 
-	'billing.title': 'பில்லிங்',
-	'billing.description': 'சந்தா மற்றும் பில்லிங் பார்வைகள் இங்கே தோன்றும்.',
 
 	'users.title': 'பயனர்கள்',
 	'users.description': 'தள ஆபரேட்டர் மற்றும் நிர்வாகி அணுகலை உருவாக்கி நிர்வகிக்கவும்.',

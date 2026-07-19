@@ -19,6 +19,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	});
 
 	event.locals.safeGetSession = async () => {
+		const clearStaleAuthCookies = async () => {
+			// Local sign-out clears cookie storage without calling Auth with a dead refresh token.
+			await event.locals.supabase.auth.signOut({ scope: 'local' });
+			for (const cookie of event.cookies.getAll()) {
+				if (cookie.name.includes('-auth-token')) {
+					event.cookies.delete(cookie.name, { path: '/' });
+				}
+			}
+		};
+
 		// Validate JWT with the Auth server first — do not trust session.user from cookies.
 		const {
 			data: { user },
@@ -26,6 +36,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		} = await event.locals.supabase.auth.getUser();
 
 		if (error || !user) {
+			const hasAuthCookie = event.cookies
+				.getAll()
+				.some((cookie) => cookie.name.includes('-auth-token'));
+			if (hasAuthCookie) {
+				await clearStaleAuthCookies();
+			}
 			return { session: null, user: null };
 		}
 
@@ -34,6 +50,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		} = await event.locals.supabase.auth.getSession();
 
 		if (!session) {
+			await clearStaleAuthCookies();
 			return { session: null, user: null };
 		}
 

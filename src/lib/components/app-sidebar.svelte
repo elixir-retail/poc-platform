@@ -7,9 +7,7 @@
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import LocaleSwitcher from '$lib/components/locale-switcher.svelte';
-	import ModeToggle from '$lib/components/mode-toggle.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import UserAvatar from '$lib/components/user-avatar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { t, type Locale, type MessageKey } from '$lib/i18n';
 	import type { PlatformProfile } from '$lib/types/platform';
@@ -46,6 +44,8 @@
 	];
 
 	const pathname = $derived(page.url.pathname);
+	const profileLabel = $derived(t(locale, 'profile.title'));
+	const signOutLabel = $derived(t(locale, 'app.signOut'));
 
 	function isActive(href: string) {
 		if (href === '/') return pathname === '/';
@@ -84,23 +84,38 @@
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<div class="flex flex-col gap-2 px-1">
-			<p class="truncate px-1 text-xs font-medium text-sidebar-foreground">
-				{user?.email ?? t(locale, 'app.signedIn')}
-			</p>
-			<p class="truncate px-1 text-xs text-muted-foreground">
-				{profile.role === 'platform_admin' ? 'Platform admin' : 'Platform operator'}
-			</p>
-			<div class="flex items-center gap-1">
-				<LocaleSwitcher {locale} />
-				<ModeToggle {locale} />
-				<form method="POST" action="/logout">
-					<Button type="submit" variant="ghost" size="icon" aria-label={t(locale, 'app.signOut')}>
-						<LogOutIcon />
-					</Button>
-				</form>
-			</div>
-		</div>
+		<form id="logout-form" method="POST" action="/logout" class="hidden"></form>
+		<Sidebar.Menu>
+			<Sidebar.MenuItem>
+				<Sidebar.MenuButton
+					size="lg"
+					isActive={isActive('/profile')}
+					tooltipContent={profileLabel}
+					class="pe-10"
+				>
+					{#snippet child({ props })}
+						<a href={resolve('/profile')} {...props}>
+							<UserAvatar name={profile.display_name} avatarUrl={profile.avatar_url} />
+							<div class="flex min-w-0 flex-col leading-tight">
+								<span class="truncate text-sm font-medium text-sidebar-foreground">
+									{profile.display_name}
+								</span>
+								<span class="truncate text-xs text-muted-foreground">
+									{user?.email ?? profile.email}
+								</span>
+							</div>
+						</a>
+					{/snippet}
+				</Sidebar.MenuButton>
+				<Sidebar.MenuAction class="cursor-pointer" title={signOutLabel}>
+					{#snippet child({ props })}
+						<button type="submit" form="logout-form" aria-label={signOutLabel} {...props}>
+							<LogOutIcon />
+						</button>
+					{/snippet}
+				</Sidebar.MenuAction>
+			</Sidebar.MenuItem>
+		</Sidebar.Menu>
 	</Sidebar.Footer>
 	<Sidebar.Rail {toggleLabel} />
 </Sidebar.Root>

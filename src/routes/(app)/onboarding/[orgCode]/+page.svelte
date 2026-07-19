@@ -3,6 +3,12 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
+	import FileTextIcon from '@lucide/svelte/icons/file-text';
+	import InfoIcon from '@lucide/svelte/icons/info';
+	import LandmarkIcon from '@lucide/svelte/icons/landmark';
+	import MapPinIcon from '@lucide/svelte/icons/map-pin';
+	import ScaleIcon from '@lucide/svelte/icons/scale';
+	import UsersIcon from '@lucide/svelte/icons/users';
 	import AddressesSection from '$lib/components/onboarding/addresses-section.svelte';
 	import BankSection from '$lib/components/onboarding/bank-section.svelte';
 	import DetailHeader from '$lib/components/onboarding/detail-header.svelte';
@@ -11,7 +17,9 @@
 	import LegalTaxSection from '$lib/components/onboarding/legal-tax-section.svelte';
 	import OverviewSection from '$lib/components/onboarding/overview-section.svelte';
 	import ReviewPanel from '$lib/components/onboarding/review-panel.svelte';
+	import Stepper from '$lib/components/onboarding/stepper.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb';
+	import { Separator } from '$lib/components/ui/separator';
 	import { t, type Locale, type MessageKey } from '$lib/i18n';
 	import type { ActionData, PageData } from './$types';
 
@@ -27,6 +35,16 @@
 		'review'
 	] as const;
 	type Step = (typeof steps)[number];
+
+	const stepIcons = {
+		overview: InfoIcon,
+		legal: ScaleIcon,
+		address: MapPinIcon,
+		directors: UsersIcon,
+		bank: LandmarkIcon,
+		documents: FileTextIcon,
+		review: CheckCircle2Icon
+	} as const;
 
 	const requestedStep = $derived(page.url.searchParams.get('step'));
 	const activeStep = $derived(
@@ -67,13 +85,7 @@
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
 
-	<DetailHeader
-		organisation={data.organisation}
-		{activeStep}
-		{isAdmin}
-		{locale}
-		onSelectStep={selectStep}
-	/>
+	<DetailHeader organisation={data.organisation} {isAdmin} {locale} />
 
 	{#if form?.message}
 		<div
@@ -85,25 +97,41 @@
 		</div>
 	{/if}
 
-	{#if activeStep === 'overview'}
-		<OverviewSection organisation={data.organisation} {isOperator} {locale} />
-	{:else if activeStep === 'legal'}
-		<LegalTaxSection organisation={data.organisation} {isOperator} {locale} />
-	{:else if activeStep === 'address'}
-		<AddressesSection organisation={data.organisation} {isOperator} {locale} />
-	{:else if activeStep === 'directors'}
-		<DirectorsSection organisation={data.organisation} {isOperator} {locale} />
-	{:else if activeStep === 'bank'}
-		<BankSection organisation={data.organisation} {isOperator} {locale} />
-	{:else if activeStep === 'documents'}
-		<DocumentsPanel
-			organisation={data.organisation}
-			documentUrls={data.documentUrls}
-			{isAdmin}
-			{isOperator}
-			{locale}
-		/>
-	{:else if activeStep === 'review'}
-		<ReviewPanel organisation={data.organisation} {isAdmin} {locale} />
-	{/if}
+	<div class="flex flex-col rounded-xl border border-border bg-card">
+		<div class="px-4 pt-4 pb-3">
+			<Stepper
+				steps={steps.map((step) => ({
+					value: step,
+					label: t(locale, `onboarding.step.${step}` as MessageKey),
+					icon: stepIcons[step]
+				}))}
+				active={activeStep}
+				onSelect={(step) => selectStep(step as Step)}
+			/>
+		</div>
+		<Separator />
+		<div class="p-4 md:p-6">
+			{#if activeStep === 'overview'}
+				<OverviewSection organisation={data.organisation} {isOperator} {locale} />
+			{:else if activeStep === 'legal'}
+				<LegalTaxSection organisation={data.organisation} {isOperator} {locale} />
+			{:else if activeStep === 'address'}
+				<AddressesSection organisation={data.organisation} {isOperator} {locale} />
+			{:else if activeStep === 'directors'}
+				<DirectorsSection organisation={data.organisation} {isOperator} {locale} />
+			{:else if activeStep === 'bank'}
+				<BankSection organisation={data.organisation} {isOperator} {locale} />
+			{:else if activeStep === 'documents'}
+				<DocumentsPanel
+					organisation={data.organisation}
+					documentUrls={data.documentUrls}
+					{isAdmin}
+					{isOperator}
+					{locale}
+				/>
+			{:else if activeStep === 'review'}
+				<ReviewPanel organisation={data.organisation} {isAdmin} {locale} />
+			{/if}
+		</div>
+	</div>
 </div>

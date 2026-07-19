@@ -2,32 +2,17 @@
 	import Building2Icon from '@lucide/svelte/icons/building-2';
 	import StatusBadge from '$lib/components/onboarding/status-badge.svelte';
 	import * as Card from '$lib/components/ui/card';
-	import * as Tabs from '$lib/components/ui/tabs';
-	import { t, type Locale, type MessageKey } from '$lib/i18n';
+	import { t, type Locale } from '$lib/i18n';
 	import type { OrganisationDetail } from '$lib/types/platform';
-
-	const steps = [
-		'overview',
-		'legal',
-		'address',
-		'directors',
-		'bank',
-		'documents',
-		'review'
-	] as const;
 
 	let {
 		organisation,
-		activeStep,
 		isAdmin,
-		locale,
-		onSelectStep
+		locale
 	}: {
 		organisation: OrganisationDetail;
-		activeStep: (typeof steps)[number];
 		isAdmin: boolean;
 		locale: Locale;
-		onSelectStep: (step: (typeof steps)[number]) => void;
 	} = $props();
 
 	const currencies = $derived(
@@ -118,18 +103,6 @@
 				<p class="text-xs text-muted-foreground">{t(locale, 'onboarding.header.completion')}</p>
 				<p class="font-medium">{completion}/7</p>
 			</div>
-		</div>
-
-		<div class="overflow-x-auto">
-			<Tabs.Root value={activeStep}>
-				<Tabs.List class="inline-flex h-auto w-max min-w-full gap-1">
-					{#each steps as step (step)}
-						<Tabs.Trigger value={step} onclick={() => onSelectStep(step)} class="capitalize">
-							{t(locale, `onboarding.step.${step}` as MessageKey)}
-						</Tabs.Trigger>
-					{/each}
-				</Tabs.List>
-			</Tabs.Root>
 		</div>
 	</Card.Content>
 </Card.Root>

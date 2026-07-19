@@ -1,4 +1,48 @@
 export type PlatformRole = 'platform_admin' | 'platform_op';
+export type OrganisationUserRole = 'root' | 'admin' | 'viewer';
+
+export type OrganisationUser = {
+	organisation_user_uuid: string;
+	org_uuid: string;
+	user_uuid: string;
+	email: string;
+	display_name: string;
+	role: OrganisationUserRole;
+	is_active: boolean;
+	created_at: string;
+	changed_at: string;
+};
+
+export type OrganisationAppContext = {
+	membership: OrganisationUser;
+	organisation: {
+		organisation_uuid: string;
+		org_code: string;
+		legal_name: string;
+		trade_name: string | null;
+		contact_email: string;
+		contact_phone: string | null;
+		country_code: string;
+		primary_currency_code: string;
+		overall_status: OnboardingStatus;
+	};
+};
+
+export type Store = {
+	store_uuid: string;
+	org_uuid: string;
+	store_code: string;
+	name: string;
+	status: 'active' | 'inactive';
+	address_line_1: string | null;
+	address_line_2: string | null;
+	city: string | null;
+	region: string | null;
+	postal_code: string | null;
+	country_code: string | null;
+	created_at: string;
+	changed_at: string;
+};
 
 export type PlatformProfile = {
 	profile_uuid: string;
@@ -7,6 +51,7 @@ export type PlatformProfile = {
 	display_name: string;
 	role: PlatformRole;
 	is_active: boolean;
+	avatar_url: string | null;
 };
 
 export type OnboardingStatus =
@@ -177,4 +222,63 @@ export type PlatformUserListItem = {
 	is_active: boolean;
 	created_at: string;
 	changed_at: string;
+};
+
+export type BillingPlanType = 'free' | 'paid';
+
+export type BillingInterval = 'none' | 'monthly' | 'yearly';
+
+export type OrganisationBillingStatus =
+	| 'free'
+	| 'trial'
+	| 'active'
+	| 'past_due'
+	| 'cancelled'
+	| 'suspended';
+
+export type BillingPlan = {
+	billing_plan_uuid: string;
+	plan_code: string;
+	name: string;
+	description: string | null;
+	plan_type: BillingPlanType;
+	amount_cents: number;
+	currency_code: string;
+	billing_interval: BillingInterval;
+	is_active: boolean;
+	created_at: string;
+	changed_at: string;
+};
+
+export type OrganisationBilling = {
+	organisation_billing_uuid: string;
+	org_uuid: string;
+	billing_plan_uuid: string;
+	status: OrganisationBillingStatus;
+	started_at: string;
+	next_billing_at: string | null;
+	notes: string | null;
+	created_at: string;
+	changed_at: string;
+	billing_plan?: BillingPlan | null;
+};
+
+export type OrganisationBillingListItem = {
+	organisation_uuid: string;
+	org_code: string;
+	legal_name: string;
+	trade_name: string | null;
+	contact_email: string;
+	country_code: string;
+	overall_status: OnboardingStatus;
+	organisation_billing: OrganisationBilling | null;
+};
+
+export type OrganisationBillingDetail = OrganisationBillingListItem & {
+	entity_type: string;
+	contact_phone: string | null;
+	preferred_language: string;
+	primary_currency_code: string;
+	kyc_status: VerificationStatus;
+	kyb_status: VerificationStatus;
 };

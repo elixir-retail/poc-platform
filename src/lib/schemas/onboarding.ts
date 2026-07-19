@@ -59,6 +59,12 @@ export const overviewSchema = z.object({
 export const createOrganisationSchema = z.object({
 	legal_name: z.string().trim().min(2).max(160),
 	contact_email: contactEmail,
+	temporary_password: z
+		.string()
+		.min(8)
+		.max(72)
+		.regex(/[A-Za-z]/, 'Password must include a letter')
+		.regex(/[0-9]/, 'Password must include a number'),
 	contact_phone: contactPhone,
 	entity_type: z.string().trim().min(2).max(80),
 	country_code: countryCode,

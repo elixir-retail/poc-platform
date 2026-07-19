@@ -1,5 +1,7 @@
 <script lang="ts">
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
+	import LocaleSwitcher from '$lib/components/locale-switcher.svelte';
+	import ModeToggle from '$lib/components/mode-toggle.svelte';
 	import NotificationBell from '$lib/components/notifications/notification-bell.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { t, type Locale } from '$lib/i18n';
@@ -27,7 +29,9 @@
 		<header class="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
 			<Sidebar.Trigger class="-ms-1" label={toggleLabel} />
 			<span class="text-sm font-medium text-foreground">{t(locale, 'app.operatorDashboard')}</span>
-			<div class="ms-auto">
+			<div class="ms-auto flex items-center gap-1">
+				<ModeToggle {locale} />
+				<LocaleSwitcher {locale} />
 				<NotificationBell notifications={data.notifications} />
 			</div>
 		</header>

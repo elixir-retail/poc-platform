@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { getOrganisationUser } from '$lib/server/organisation-auth';
 import { getPlatformProfile } from '$lib/server/platform-auth';
 import type { PlatformNotification } from '$lib/types/platform';
 import type { LayoutServerLoad } from './$types';
@@ -13,6 +14,13 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 	const profile = await getPlatformProfile(supabase, user);
 
 	if (!profile) {
+		const organisationUser = await getOrganisationUser(supabase, user);
+		if (organisationUser) {
+			redirect(
+				303,
+				user?.user_metadata?.must_change_password ? '/org/change-password' : '/org'
+			);
+		}
 		redirect(303, '/unauthorized');
 	}
 

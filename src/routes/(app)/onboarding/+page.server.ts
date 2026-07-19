@@ -6,6 +6,8 @@ import type { OrganisationListItem, PlatformProfile } from '$lib/types/platform'
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type { Actions, PageServerLoad } from './$types';
 
+const PAGE_SIZE = 10;
+
 async function requireActor(
 	supabase: SupabaseClient,
 	safeGetSession: App.Locals['safeGetSession']
@@ -17,8 +19,22 @@ async function requireActor(
 	return { user, profile };
 }
 
-export const load: PageServerLoad = async ({ locals: { supabase } }) => {
-	const { data, error: queryError } = await supabase
+function parsePage(value: string | null): number {
+	const parsed = Number(value ?? '1');
+	if (!Number.isFinite(parsed) || parsed < 1) return 1;
+	return Math.floor(parsed);
+}
+
+export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
+	const requestedPage = parsePage(url.searchParams.get('page'));
+	const from = (requestedPage - 1) * PAGE_SIZE;
+	const to = from + PAGE_SIZE - 1;
+
+	const {
+		data,
+		error: queryError,
+		count
+	} = await supabase
 		.from('organisation')
 		.select(
 			`
@@ -37,15 +53,36 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			changed_at,
 			organisation_currency(currency_code, is_primary),
 			organisation_tax_id(tax_type, tax_value, is_primary, verification_status)
-		`
+		`,
+			{ count: 'exact' }
 		)
-		.order('changed_at', { ascending: false });
+		.order('changed_at', { ascending: false })
+		.range(from, to);
 
 	if (queryError) {
 		error(500, 'Unable to load onboarding organisations');
 	}
 
-	return { organisations: (data ?? []) as OrganisationListItem[] };
+	const total = count ?? 0;
+	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE) || 1);
+
+	if (total > 0 && requestedPage > totalPages) {
+		const params = new URLSearchParams(url.searchParams);
+		if (totalPages <= 1) params.delete('page');
+		else params.set('page', String(totalPages));
+		const query = params.toString();
+		redirect(303, query ? `/onboarding?${query}` : '/onboarding');
+	}
+
+	return {
+		organisations: (data ?? []) as OrganisationListItem[],
+		pagination: {
+			page: requestedPage,
+			perPage: PAGE_SIZE,
+			total,
+			totalPages
+		}
+	};
 };
 
 export const actions: Actions = {

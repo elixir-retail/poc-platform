@@ -9,7 +9,7 @@ export async function getPlatformProfile(
 
 	const { data, error } = await supabase
 		.from('profile')
-		.select('profile_uuid, user_uuid, email, display_name, role, is_active')
+		.select('profile_uuid, user_uuid, email, display_name, role, is_active, avatar_url')
 		.eq('user_uuid', user.id)
 		.eq('is_active', true)
 		.maybeSingle();

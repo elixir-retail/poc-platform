@@ -1,6 +1,24 @@
 import type { Messages } from './en';
 
 export const hi: Messages = {
+	'billing.title': 'बिलिंग',
+	'billing.description':
+		'व्यावसायिक योजनाएँ प्रबंधित करें और संगठन बिलिंग स्थिति ट्रैक करें, जिसमें मुफ़्त पहुँच शामिल है।',
+	'onboarding.pagination.showing': '{total} में से {from}–{to} दिखा रहे हैं',
+	'profile.title': 'प्रोफ़ाइल सेटिंग्स',
+	'profile.description': 'अपना अवतार प्रबंधित करें और खाता विवरण देखें।',
+	'profile.avatarTitle': 'अवतार',
+	'profile.avatarDescription': 'एक चित्र अपलोड करें, अन्यथा आपके नाम के पहले अक्षर दिखाए जाएँगे।',
+	'profile.uploadLabel': 'नई अवतार छवि',
+	'profile.uploadHint': 'PNG, JPEG, या WebP, अधिकतम 2 MB।',
+	'profile.uploadButton': 'अवतार अपलोड करें',
+	'profile.removeButton': 'अवतार हटाएँ',
+	'profile.accountTitle': 'खाता',
+	'profile.accountDescription': 'ये विवरण प्लेटफ़ॉर्म व्यवस्थापकों द्वारा प्रबंधित किए जाते हैं।',
+	'profile.nameLabel': 'नाम',
+	'profile.emailLabel': 'ईमेल',
+	'profile.roleLabel': 'भूमिका',
+
 	'app.platform': 'प्लेटफ़ॉर्म',
 	'app.operatorDashboard': 'ऑपरेटर डैशबोर्ड',
 	'app.navigation': 'नेविगेशन',
@@ -41,8 +59,6 @@ export const hi: Messages = {
 	'organizations.title': 'संगठन',
 	'organizations.description': 'मर्चेंट और संगठन ऑनबोर्डिंग यहाँ दिखाई देगी।',
 
-	'billing.title': 'बिलिंग',
-	'billing.description': 'सब्सक्रिप्शन और बिलिंग व्यू यहाँ दिखाई देंगे।',
 
 	'users.title': 'उपयोगकर्ता',
 	'users.description': 'प्लेटफ़ॉर्म ऑपरेटर और एडमिन एक्सेस बनाएँ और प्रबंधित करें।',

@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export type CreateOrganisationInput = {
 	legal_name: string;
 	contact_email: string;
+	temporary_password: string;
 	contact_phone: string | null;
 	entity_type: string;
 	country_code: string;
@@ -78,6 +79,47 @@ export async function createOrganisation(
 		throw new Error(currencyError.message);
 	}
 
+	const admin = getSupabaseAdmin();
+	const { data: authData, error: authError } = await admin.auth.admin.createUser({
+		email: input.contact_email,
+		password: input.temporary_password,
+		email_confirm: true,
+		user_metadata: {
+			display_name: `${input.legal_name} Root`,
+			must_change_password: true,
+			account_type: 'organisation'
+		}
+	});
+
+	if (authError || !authData.user) {
+		await admin
+			.from('organisation')
+			.delete()
+			.eq('organisation_uuid', organisation.organisation_uuid);
+		throw new Error(authError?.message ?? 'Unable to create the root organisation user');
+	}
+
+	const rootUserUuid = authData.user.id;
+	const { error: membershipError } = await admin.from('organisation_user').insert({
+		org_uuid: organisation.organisation_uuid,
+		user_uuid: rootUserUuid,
+		email: input.contact_email,
+		display_name: `${input.legal_name} Root`,
+		role: 'root',
+		is_active: true,
+		created_by: actor.user.id,
+		changed_by: actor.user.id
+	});
+
+	if (membershipError) {
+		await admin.auth.admin.deleteUser(rootUserUuid);
+		await admin
+			.from('organisation')
+			.delete()
+			.eq('organisation_uuid', organisation.organisation_uuid);
+		throw new Error(membershipError.message);
+	}
+
 	await writeAudit(supabase, {
 		orgUuid: organisation.organisation_uuid,
 		actorProfileUuid: actor.profile.profile_uuid,
@@ -87,7 +129,14 @@ export async function createOrganisation(
 		entityUuid: organisation.organisation_uuid,
 		afterData: {
 			org_code: organisation.org_code,
-			...input
+			legal_name: input.legal_name,
+			contact_email: input.contact_email,
+			contact_phone: input.contact_phone,
+			entity_type: input.entity_type,
+			country_code: input.country_code,
+			preferred_language: input.preferred_language,
+			primary_currency_code: input.primary_currency_code,
+			root_user_uuid: rootUserUuid
 		}
 	});
 
