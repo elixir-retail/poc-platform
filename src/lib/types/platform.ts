@@ -1,5 +1,44 @@
 export type PlatformRole = 'platform_admin' | 'platform_op';
 export type OrganisationUserRole = 'root' | 'admin' | 'viewer';
+export type StoreBusinessMode = 'retail' | 'service' | 'hybrid';
+export type RetailCategory =
+	| 'grocery_supermarket'
+	| 'convenience'
+	| 'bunk_shop'
+	| 'pharmacy_health'
+	| 'electronics_mobile'
+	| 'clothing_fashion'
+	| 'home_furniture'
+	| 'automotive_parts'
+	| 'fuel'
+	| 'hardware_building'
+	| 'beauty_personal_care'
+	| 'general_merchandise'
+	| 'specialty_other';
+export type ServiceCategory =
+	| 'salon_beauty'
+	| 'spa_wellness'
+	| 'massage'
+	| 'tailoring_alterations'
+	| 'electronics_repair'
+	| 'automotive_service'
+	| 'healthcare'
+	| 'home_maintenance'
+	| 'professional'
+	| 'education'
+	| 'hospitality'
+	| 'service_other';
+export type GoodsCharacteristic =
+	| 'perishable'
+	| 'shelf_stable'
+	| 'frozen'
+	| 'regulated'
+	| 'high_value'
+	| 'serialized'
+	| 'made_to_order'
+	| 'digital';
+export type ServiceModel =
+	'walk_in' | 'appointment' | 'hourly' | 'fixed_job' | 'recurring' | 'field_service' | 'emergency';
 
 export type OrganisationUser = {
 	organisation_user_uuid: string;
@@ -34,6 +73,16 @@ export type Store = {
 	store_code: string;
 	name: string;
 	status: 'active' | 'inactive';
+	business_mode: StoreBusinessMode;
+	retail_category: RetailCategory | null;
+	service_category: ServiceCategory | null;
+	goods_characteristics: GoodsCharacteristic[];
+	service_models: ServiceModel[];
+	description: string | null;
+	phone: string | null;
+	email: string | null;
+	currency_code: string;
+	source_change_request_uuid: string | null;
 	address_line_1: string | null;
 	address_line_2: string | null;
 	city: string | null;
@@ -42,6 +91,74 @@ export type Store = {
 	country_code: string | null;
 	created_at: string;
 	changed_at: string;
+};
+
+export type StoreChangeRequest = {
+	store_change_request_uuid: string;
+	org_uuid: string;
+	submitted_by_organisation_user_uuid: string;
+	request_type: 'create' | 'update';
+	target_store_uuid: string | null;
+	proposed_data: Record<string, unknown>;
+	status: 'pending' | 'approved' | 'rejected';
+	reviewed_by_organisation_user_uuid: string | null;
+	reviewed_at: string | null;
+	review_notes: string | null;
+	created_at: string;
+	changed_at: string;
+	submitter?: Pick<OrganisationUser, 'display_name' | 'email'> | null;
+};
+
+export type StoreUser = {
+	store_user_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	user_uuid: string;
+	email: string;
+	display_name: string;
+	role: 'root';
+	is_active: boolean;
+	created_at: string;
+	changed_at: string;
+};
+
+export type StoreAppContext = {
+	membership: StoreUser;
+	store: Store;
+	organisation: {
+		organisation_uuid: string;
+		org_code: string;
+		legal_name: string;
+		trade_name: string | null;
+	};
+};
+
+export type StoreTransaction = {
+	store_transaction_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	transaction_code: string;
+	channel: 'online' | 'offline';
+	status: 'pending' | 'completed' | 'failed' | 'refunded';
+	occurred_at: string;
+	currency_code: string;
+	gross_amount_cents: number;
+	payment_method: string;
+	external_reference: string | null;
+	created_at: string;
+	store?: Pick<Store, 'store_code' | 'name'> | null;
+};
+
+export type OrganisationAuditEvent = {
+	organisation_audit_event_uuid: string;
+	org_uuid: string;
+	actor_organisation_user_uuid: string;
+	action: string;
+	entity_type: string;
+	entity_uuid: string | null;
+	before_data: Record<string, unknown> | null;
+	after_data: Record<string, unknown> | null;
+	created_at: string;
 };
 
 export type PlatformProfile = {
@@ -75,7 +192,8 @@ export type ChangeRequestSection =
 	| 'director'
 	| 'bank'
 	| 'document'
-	| 'verification';
+	| 'verification'
+	| 'tenant_profile';
 
 export type MutationOperation = 'create' | 'update' | 'delete' | 'replace' | 'archive';
 
@@ -229,12 +347,7 @@ export type BillingPlanType = 'free' | 'paid';
 export type BillingInterval = 'none' | 'monthly' | 'yearly';
 
 export type OrganisationBillingStatus =
-	| 'free'
-	| 'trial'
-	| 'active'
-	| 'past_due'
-	| 'cancelled'
-	| 'suspended';
+	'free' | 'trial' | 'active' | 'past_due' | 'cancelled' | 'suspended';
 
 export type BillingPlan = {
 	billing_plan_uuid: string;

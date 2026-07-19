@@ -1,28 +1,17 @@
 <script lang="ts">
-	import Building2Icon from '@lucide/svelte/icons/building-2';
-	import ClipboardListIcon from '@lucide/svelte/icons/clipboard-list';
-	import CreditCardIcon from '@lucide/svelte/icons/credit-card';
 	import LayoutDashboardIcon from '@lucide/svelte/icons/layout-dashboard';
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
 	import ReceiptIcon from '@lucide/svelte/icons/receipt';
 	import StoreIcon from '@lucide/svelte/icons/store';
-	import UsersIcon from '@lucide/svelte/icons/users';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import UserAvatar from '$lib/components/user-avatar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { t, type Locale, type MessageKey } from '$lib/i18n';
-	import type { OrganisationAppContext } from '$lib/types/platform';
+	import type { StoreAppContext } from '$lib/types/platform';
 
-	type OrgRoute =
-		| '/org'
-		| '/org/users'
-		| '/org/stores'
-		| '/org/transactions'
-		| '/org/billing'
-		| '/org/audit'
-		| '/org/profile';
-	type NavItem = { titleKey: MessageKey; href: OrgRoute; icon: typeof LayoutDashboardIcon };
+	type StoreRoute = '/store' | '/store/transactions';
+	type NavItem = { titleKey: MessageKey; href: StoreRoute; icon: typeof LayoutDashboardIcon };
 
 	let {
 		context,
@@ -31,7 +20,7 @@
 		sidebarTitle,
 		sidebarDescription
 	}: {
-		context: OrganisationAppContext;
+		context: StoreAppContext;
 		locale: Locale;
 		toggleLabel: string;
 		sidebarTitle: string;
@@ -39,37 +28,31 @@
 	} = $props();
 
 	const navItems: NavItem[] = [
-		{ titleKey: 'orgApp.dashboard', href: '/org', icon: LayoutDashboardIcon },
-		{ titleKey: 'orgApp.users', href: '/org/users', icon: UsersIcon },
-		{ titleKey: 'orgApp.stores', href: '/org/stores', icon: StoreIcon },
-		{ titleKey: 'orgApp.transactions', href: '/org/transactions', icon: ReceiptIcon },
-		{ titleKey: 'orgApp.billing', href: '/org/billing', icon: CreditCardIcon },
-		{ titleKey: 'orgApp.audit', href: '/org/audit', icon: ClipboardListIcon },
-		{ titleKey: 'orgApp.profile', href: '/org/profile', icon: Building2Icon }
+		{ titleKey: 'storeApp.dashboard', href: '/store', icon: LayoutDashboardIcon },
+		{ titleKey: 'storeApp.transactions', href: '/store/transactions', icon: ReceiptIcon }
 	];
 
 	const pathname = $derived(page.url.pathname);
 	const signOutLabel = $derived(t(locale, 'app.signOut'));
-	const organisationName = $derived(
-		context.organisation.trade_name ?? context.organisation.legal_name
-	);
 
-	function isActive(href: OrgRoute) {
-		if (href === '/org') return pathname === '/org';
+	function isActive(href: StoreRoute) {
+		if (href === '/store') return pathname === '/store';
 		return pathname === href || pathname.startsWith(`${href}/`);
 	}
 </script>
 
 <Sidebar.Root collapsible="icon" {sidebarTitle} {sidebarDescription}>
 	<Sidebar.Header>
-		<a href={resolve('/org')} class="flex items-center gap-2 px-2 py-1.5">
-			<Building2Icon class="size-4 shrink-0" />
-			<span class="truncate text-sm font-semibold text-sidebar-foreground">{organisationName}</span>
+		<a href={resolve('/store')} class="flex items-center gap-2 px-2 py-1.5">
+			<StoreIcon class="size-4 shrink-0" />
+			<span class="truncate text-sm font-semibold text-sidebar-foreground"
+				>{context.store.name}</span
+			>
 		</a>
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<Sidebar.Group>
-			<Sidebar.GroupLabel>{t(locale, 'orgApp.navigation')}</Sidebar.GroupLabel>
+			<Sidebar.GroupLabel>{t(locale, 'storeApp.navigation')}</Sidebar.GroupLabel>
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					{#each navItems as item (item.href)}
@@ -90,7 +73,7 @@
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<form id="org-logout-form" method="POST" action="/logout" class="hidden"></form>
+		<form id="store-logout-form" method="POST" action="/logout" class="hidden"></form>
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton
@@ -99,14 +82,14 @@
 					class="pe-10"
 				>
 					{#snippet child({ props })}
-						<a href={resolve('/org/profile')} {...props}>
+						<a href={resolve('/store')} {...props}>
 							<UserAvatar name={context.membership.display_name} />
 							<div class="flex min-w-0 flex-col leading-tight">
 								<span class="truncate text-sm font-medium text-sidebar-foreground">
 									{context.membership.display_name}
 								</span>
 								<span class="truncate text-xs text-muted-foreground">
-									{t(locale, `orgApp.role.${context.membership.role}` as MessageKey)}
+									{t(locale, 'storeApp.role.root')}
 								</span>
 							</div>
 						</a>
@@ -114,7 +97,7 @@
 				</Sidebar.MenuButton>
 				<Sidebar.MenuAction class="cursor-pointer" title={signOutLabel}>
 					{#snippet child({ props })}
-						<button type="submit" form="org-logout-form" aria-label={signOutLabel} {...props}>
+						<button type="submit" form="store-logout-form" aria-label={signOutLabel} {...props}>
 							<LogOutIcon />
 						</button>
 					{/snippet}

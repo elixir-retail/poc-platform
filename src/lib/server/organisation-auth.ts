@@ -1,4 +1,5 @@
 import { getPlatformProfile } from '$lib/server/platform-auth';
+import { getStoreUser } from '$lib/server/store-auth';
 import type {
 	OrganisationAppContext,
 	OrganisationUser,
@@ -56,14 +57,21 @@ export function canManageOrganisation(role: OrganisationUserRole): boolean {
 export async function resolveAuthenticatedDestination(
 	supabase: SupabaseClient,
 	user: User | null
-): Promise<'/' | '/org' | '/org/change-password' | '/unauthorized'> {
+): Promise<
+	'/' | '/org' | '/org/change-password' | '/store' | '/store/change-password' | '/unauthorized'
+> {
 	if (!user) return '/unauthorized';
 
 	const profile = await getPlatformProfile(supabase, user);
 	if (profile) return '/';
 
 	const organisationUser = await getOrganisationUser(supabase, user);
-	if (!organisationUser) return '/unauthorized';
+	if (organisationUser) {
+		return user.user_metadata?.must_change_password ? '/org/change-password' : '/org';
+	}
 
-	return user.user_metadata?.must_change_password ? '/org/change-password' : '/org';
+	const storeUser = await getStoreUser(supabase, user);
+	if (!storeUser) return '/unauthorized';
+
+	return user.user_metadata?.must_change_password ? '/store/change-password' : '/store';
 }

@@ -276,6 +276,37 @@ export async function applyMutation(
 			}
 			return;
 		}
+		case 'tenant_profile': {
+			const allowed = [
+				'legal_name',
+				'trade_name',
+				'entity_type',
+				'contact_email',
+				'contact_phone',
+				'preferred_language',
+				'country_code',
+				'primary_currency_code'
+			] as const;
+			const patch = Object.fromEntries(
+				Object.entries(values).filter(([key]) => (allowed as readonly string[]).includes(key))
+			);
+			if (values.trade_name === '') patch.trade_name = null;
+			if (Object.keys(patch).length === 0) throw new Error('No profile fields to update');
+
+			const { error } = await supabase
+				.from('organisation')
+				.update({ ...patch, changed_by: changedBy, changed_at: changedAt })
+				.eq('organisation_uuid', orgUuid);
+			if (error) throw new Error(error.message);
+
+			if (
+				typeof patch.primary_currency_code === 'string' &&
+				patch.primary_currency_code.length === 3
+			) {
+				await syncPrimaryCurrency(supabase, orgUuid, patch.primary_currency_code, changedBy);
+			}
+			return;
+		}
 		case 'currencies': {
 			const currencies =
 				(values.currencies as Array<{
