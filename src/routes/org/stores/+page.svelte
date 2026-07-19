@@ -361,6 +361,21 @@
 						</p>
 					{/if}
 				</div>
+				<div class="flex flex-col gap-2">
+					<Label for="counter_count">{t(locale, 'orgApp.stores.field.counterCount')}</Label>
+					<Input
+						id="counter_count"
+						name="counter_count"
+						type="number"
+						min={1}
+						max={20}
+						value={2}
+						required
+					/>
+					<p class="text-xs text-muted-foreground">
+						{t(locale, 'orgApp.stores.counterCountHint')}
+					</p>
+				</div>
 			</section>
 
 			<section class="grid gap-4 border-t border-border pt-5">

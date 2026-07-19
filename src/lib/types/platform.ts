@@ -122,6 +122,63 @@ export type StoreUser = {
 	changed_at: string;
 };
 
+export type StoreCounter = {
+	store_counter_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	counter_code: string;
+	name: string;
+	status: 'online' | 'offline';
+	active_store_user_uuid: string | null;
+	last_seen_at: string | null;
+	created_at: string;
+	changed_at: string;
+};
+
+export type ProductType = 'standard' | 'perishable' | 'electronics' | 'mobile_phone' | 'laptop';
+
+export type StoreProduct = {
+	store_product_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	sku: string;
+	name: string;
+	description: string | null;
+	brand: string | null;
+	product_type: ProductType;
+	product_category: string;
+	price_cents: number;
+	currency_code: string;
+	package_number: string | null;
+	gtin: string | null;
+	batch_lot_number: string | null;
+	manufacturing_date: string | null;
+	expiry_date: string | null;
+	warranty_months: number | null;
+	manufacturer_serial_number: string | null;
+	imei: string | null;
+	tracking_number: string | null;
+	status: 'active' | 'inactive';
+	created_at: string;
+	changed_at: string;
+};
+
+export type StoreInventory = {
+	store_inventory_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	store_product_uuid: string;
+	quantity_on_hand: number;
+	storage_location: string | null;
+	last_counted_at: string | null;
+	created_at: string;
+	changed_at: string;
+	product: Pick<
+		StoreProduct,
+		'store_product_uuid' | 'sku' | 'name' | 'brand' | 'product_category' | 'product_type' | 'status'
+	>;
+};
+
 export type StoreAppContext = {
 	membership: StoreUser;
 	store: Store;

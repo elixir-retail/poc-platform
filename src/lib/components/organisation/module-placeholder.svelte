@@ -7,12 +7,14 @@
 		icon: Icon,
 		titleKey,
 		descriptionKey,
-		locale
+		locale,
+		skeletonKey = 'orgApp.skeleton'
 	}: {
 		icon: Component;
 		titleKey: MessageKey;
 		descriptionKey: MessageKey;
 		locale: Locale;
+		skeletonKey?: MessageKey;
 	} = $props();
 </script>
 
@@ -27,7 +29,7 @@
 	<Card.Root>
 		<Card.Content class="flex min-h-48 items-center justify-center p-6">
 			<p class="max-w-md text-center text-sm text-muted-foreground">
-				{t(locale, 'orgApp.skeleton')}
+				{t(locale, skeletonKey)}
 			</p>
 		</Card.Content>
 	</Card.Root>

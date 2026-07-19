@@ -2,6 +2,7 @@
 	import LocaleSwitcher from '$lib/components/locale-switcher.svelte';
 	import ModeToggle from '$lib/components/mode-toggle.svelte';
 	import StoreAppSidebar from '$lib/components/store-app-sidebar.svelte';
+	import { Badge } from '$lib/components/ui/badge';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { t, type Locale } from '$lib/i18n';
 	import type { LayoutData } from './$types';
@@ -15,7 +16,7 @@
 	const sidebarDescription = $derived(t(locale, 'app.sidebarDescription'));
 </script>
 
-{#if data.user?.user_metadata?.must_change_password}
+{#if data.user?.user_metadata?.must_change_password || !data.activeCounter}
 	{@render children()}
 {:else}
 	<Sidebar.Provider>
@@ -32,6 +33,11 @@
 				<span class="truncate text-sm font-medium text-foreground"
 					>{data.storeContext.store.name}</span
 				>
+				{#if data.activeCounter}
+					<Badge variant="secondary" class="hidden sm:inline-flex">
+						{data.activeCounter.name} · {t(locale, 'storeApp.counter.online')}
+					</Badge>
+				{/if}
 				<div class="ms-auto flex items-center gap-1">
 					<ModeToggle {locale} />
 					<LocaleSwitcher {locale} />

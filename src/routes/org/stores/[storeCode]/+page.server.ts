@@ -1,8 +1,17 @@
 import { error, fail } from '@sveltejs/kit';
-import { updateStoreSchema } from '$lib/schemas/stores';
+import {
+	addStoreCounterSchema,
+	deleteStoreCounterSchema,
+	updateStoreSchema
+} from '$lib/schemas/stores';
 import { getOrganisationAppContext } from '$lib/server/organisation-auth';
-import { submitStoreUpdateRequest, updateStore } from '$lib/server/stores';
-import type { Store, StoreChangeRequest } from '$lib/types/platform';
+import {
+	addStoreCounter,
+	deleteStoreCounter,
+	submitStoreUpdateRequest,
+	updateStore
+} from '$lib/server/stores';
+import type { Store, StoreChangeRequest, StoreCounter } from '$lib/types/platform';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, parent, locals: { supabase } }) => {
@@ -21,7 +30,7 @@ export const load: PageServerLoad = async ({ params, parent, locals: { supabase 
 	if (storeError) error(500, 'Unable to load store');
 	if (!store) error(404, 'Store not found');
 
-	const [currenciesResult, requestsResult] = await Promise.all([
+	const [currenciesResult, requestsResult, countersResult] = await Promise.all([
 		supabase
 			.from('organisation_currency')
 			.select('currency_code, is_primary')
@@ -35,16 +44,25 @@ export const load: PageServerLoad = async ({ params, parent, locals: { supabase 
 			)
 			.eq('target_store_uuid', store.store_uuid)
 			.eq('request_type', 'update')
-			.order('created_at', { ascending: false })
+			.order('created_at', { ascending: false }),
+		supabase
+			.from('store_counter')
+			.select(
+				'store_counter_uuid, org_uuid, store_uuid, counter_code, name, status, active_store_user_uuid, last_seen_at, created_at, changed_at'
+			)
+			.eq('store_uuid', store.store_uuid)
+			.order('counter_code')
 	]);
 
 	if (currenciesResult.error) error(500, 'Unable to load organisation currencies');
 	if (requestsResult.error) error(500, 'Unable to load store requests');
+	if (countersResult.error) error(500, 'Unable to load store counters');
 
 	return {
 		store: store as Store,
 		currencies: currenciesResult.data ?? [],
-		storeRequests: (requestsResult.data ?? []) as StoreChangeRequest[]
+		storeRequests: (requestsResult.data ?? []) as StoreChangeRequest[],
+		storeCounters: (countersResult.data ?? []) as StoreCounter[]
 	};
 };
 
@@ -101,16 +119,116 @@ export const actions: Actions = {
 				await submitStoreUpdateRequest(supabase, user, context, store.store_uuid, parsed.data);
 				return {
 					success: true as const,
+					action: 'updateStore' as const,
 					message: 'Store changes submitted for administrator approval.'
 				};
 			}
 
 			await updateStore(supabase, user, context, store.store_uuid, parsed.data);
-			return { success: true as const, message: 'Store updated.' };
+			return {
+				success: true as const,
+				action: 'updateStore' as const,
+				message: 'Store updated.'
+			};
 		} catch (err) {
 			return fail(400, {
 				success: false as const,
+				action: 'updateStore' as const,
 				message: err instanceof Error ? err.message : 'Unable to update store'
+			});
+		}
+	},
+
+	addCounter: async ({ params, request, locals: { safeGetSession, supabase } }) => {
+		const { user } = await safeGetSession();
+		if (!user) error(401, 'Authentication required');
+
+		const context = await getOrganisationAppContext(supabase, user);
+		if (!context) error(403, 'Organisation access required');
+
+		const { data: store, error: storeError } = await supabase
+			.from('store')
+			.select('store_uuid')
+			.eq('org_uuid', context.organisation.organisation_uuid)
+			.eq('store_code', params.storeCode)
+			.maybeSingle();
+		if (storeError) error(500, 'Unable to load store');
+		if (!store) error(404, 'Store not found');
+
+		const formData = await request.formData();
+		const parsed = addStoreCounterSchema.safeParse({
+			name: formData.get('name')
+		});
+		if (!parsed.success) {
+			return fail(400, {
+				success: false as const,
+				action: 'addCounter' as const,
+				message: parsed.error.issues[0]?.message ?? 'Check the counter details.'
+			});
+		}
+
+		try {
+			await addStoreCounter(supabase, user, context, store.store_uuid, parsed.data.name);
+			return {
+				success: true as const,
+				action: 'addCounter' as const,
+				message: 'Counter added.'
+			};
+		} catch (err) {
+			return fail(400, {
+				success: false as const,
+				action: 'addCounter' as const,
+				message: err instanceof Error ? err.message : 'Unable to add counter'
+			});
+		}
+	},
+
+	deleteCounter: async ({ params, request, locals: { safeGetSession, supabase } }) => {
+		const { user } = await safeGetSession();
+		if (!user) error(401, 'Authentication required');
+
+		const context = await getOrganisationAppContext(supabase, user);
+		if (!context) error(403, 'Organisation access required');
+
+		const { data: store, error: storeError } = await supabase
+			.from('store')
+			.select('store_uuid')
+			.eq('org_uuid', context.organisation.organisation_uuid)
+			.eq('store_code', params.storeCode)
+			.maybeSingle();
+		if (storeError) error(500, 'Unable to load store');
+		if (!store) error(404, 'Store not found');
+
+		const formData = await request.formData();
+		const parsed = deleteStoreCounterSchema.safeParse({
+			store_counter_uuid: formData.get('store_counter_uuid')
+		});
+		if (!parsed.success) {
+			return fail(400, {
+				success: false as const,
+				action: 'deleteCounter' as const,
+				message: parsed.error.issues[0]?.message ?? 'Counter not found.'
+			});
+		}
+
+		try {
+			await deleteStoreCounter(
+				supabase,
+				user,
+				context,
+				store.store_uuid,
+				parsed.data.store_counter_uuid
+			);
+			return {
+				success: true as const,
+				action: 'deleteCounter' as const,
+				message: 'Counter deleted.'
+			};
+		} catch (err) {
+			return fail(400, {
+				success: false as const,
+				action: 'deleteCounter' as const,
+				message: err instanceof Error ? err.message : 'Unable to delete counter'
 			});
 		}
 	}

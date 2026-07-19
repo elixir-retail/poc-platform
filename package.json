@@ -49,6 +49,8 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.12.3",
 		"@supabase/supabase-js": "^2.110.7",
+		"html5-qrcode": "^2.3.8",
+		"jsbarcode": "^3.12.3",
 		"zod": "^4.4.3"
 	}
 }

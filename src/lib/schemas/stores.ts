@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const STORE_BUSINESS_MODES = ['retail', 'service', 'hybrid'] as const;
 
+export const storeCounterCountSchema = z.coerce.number().int().min(1).max(20);
+
 export const RETAIL_CATEGORIES = [
 	'grocery_supermarket',
 	'convenience',
@@ -146,3 +148,20 @@ export const updateStoreSchema = createStoreSchema.and(
 );
 
 export type UpdateStoreInput = z.infer<typeof updateStoreSchema>;
+
+export const addStoreCounterSchema = z.object({
+	name: z
+		.string()
+		.trim()
+		.max(80)
+		.optional()
+		.default('')
+		.transform((value) => value || null)
+		.refine((value) => value === null || value.length >= 2, {
+			message: 'Counter name must be at least 2 characters'
+		})
+});
+
+export const deleteStoreCounterSchema = z.object({
+	store_counter_uuid: z.uuid()
+});

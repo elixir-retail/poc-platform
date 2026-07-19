@@ -6,6 +6,7 @@
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import PhoneIcon from '@lucide/svelte/icons/phone';
 	import StoreIcon from '@lucide/svelte/icons/store';
+	import StoreCountersSheet from '$lib/components/organisation/store-counters-sheet.svelte';
 	import StoreEditSheet from '$lib/components/organisation/store-edit-sheet.svelte';
 	import StatusBadge from '$lib/components/onboarding/status-badge.svelte';
 	import { Badge } from '$lib/components/ui/badge';
@@ -30,11 +31,17 @@
 	const pendingRequest = $derived(
 		data.storeRequests.find((request) => request.status === 'pending') ?? null
 	);
+	const countersMessage = $derived(
+		form?.action === 'addCounter' || form?.action === 'deleteCounter'
+			? (form.message ?? null)
+			: null
+	);
 
 	let editOpen = $state(false);
+	let countersOpen = $state(false);
 
 	$effect(() => {
-		if (form?.success) editOpen = false;
+		if (form?.success && form.action === 'updateStore') editOpen = false;
 	});
 
 	function modeLabel(mode: StoreBusinessMode) {
@@ -221,6 +228,34 @@
 		</Card.Root>
 
 		<Card.Root>
+			<Card.Header class="flex flex-row items-start justify-between gap-3 space-y-0">
+				<div class="flex flex-col gap-1.5">
+					<Card.Title>{t(locale, 'storeApp.counters.title')}</Card.Title>
+					<Card.Description>{t(locale, 'storeApp.counters.description')}</Card.Description>
+				</div>
+				{#if !isViewer}
+					<Button variant="outline" size="sm" onclick={() => (countersOpen = true)}>
+						<PencilIcon class="size-4" />
+						{t(locale, 'orgApp.stores.counters.edit')}
+					</Button>
+				{/if}
+			</Card.Header>
+			<Card.Content class="flex flex-col gap-3 text-sm">
+				{#each data.storeCounters as counter (counter.store_counter_uuid)}
+					<div class="flex items-center justify-between gap-3">
+						<div>
+							<p class="font-medium">{counter.name}</p>
+							<p class="font-mono text-xs text-muted-foreground">{counter.counter_code}</p>
+						</div>
+						<Badge variant={counter.status === 'online' ? 'default' : 'secondary'}>
+							{t(locale, `storeApp.counter.${counter.status}` as MessageKey)}
+						</Badge>
+					</div>
+				{/each}
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
 			<Card.Header>
 				<Card.Title>{t(locale, 'orgApp.stores.detail.record')}</Card.Title>
 				<Card.Description>{t(locale, 'orgApp.stores.detail.recordHint')}</Card.Description>
@@ -280,3 +315,9 @@
 </div>
 
 <StoreEditSheet bind:open={editOpen} {store} currencies={data.currencies} {isViewer} {locale} />
+<StoreCountersSheet
+	bind:open={countersOpen}
+	counters={data.storeCounters}
+	{locale}
+	message={countersMessage}
+/>

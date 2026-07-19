@@ -5,7 +5,12 @@ import {
 	type UpdateStoreInput
 } from '$lib/schemas/stores';
 import { canManageOrganisation } from '$lib/server/organisation-auth';
-import type { OrganisationAppContext, Store, StoreChangeRequest } from '$lib/types/platform';
+import type {
+	OrganisationAppContext,
+	Store,
+	StoreChangeRequest,
+	StoreCounter
+} from '$lib/types/platform';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 export async function createStore(
@@ -13,7 +18,7 @@ export async function createStore(
 	user: User,
 	context: OrganisationAppContext,
 	input: CreateStoreInput,
-	options?: { sourceChangeRequestUuid?: string }
+	options?: { sourceChangeRequestUuid?: string; counterCount?: number }
 ): Promise<Store> {
 	if (!canManageOrganisation(context.membership.role)) {
 		throw new Error('Only organisation administrators can create stores.');
@@ -73,6 +78,22 @@ export async function createStore(
 		throw new Error(storeError?.message ?? 'Unable to create store');
 	}
 
+	const counterCount = options?.counterCount ?? 1;
+	const { error: counterError } = await supabase.from('store_counter').insert(
+		Array.from({ length: counterCount }, (_, index) => ({
+			org_uuid: context.organisation.organisation_uuid,
+			store_uuid: store.store_uuid,
+			counter_code: `COUNTER-${String(index + 1).padStart(2, '0')}`,
+			name: `Counter ${index + 1}`,
+			created_by: user.id,
+			changed_by: user.id
+		}))
+	);
+	if (counterError) {
+		await supabase.from('store').delete().eq('store_uuid', store.store_uuid);
+		throw new Error(`Unable to configure counters: ${counterError.message}`);
+	}
+
 	const { error: auditError } = await supabase.from('organisation_audit_event').insert({
 		org_uuid: context.organisation.organisation_uuid,
 		actor_organisation_user_uuid: context.membership.organisation_user_uuid,
@@ -96,7 +117,8 @@ export async function submitStoreChangeRequest(
 	supabase: SupabaseClient,
 	user: User,
 	context: OrganisationAppContext,
-	input: CreateStoreInput
+	input: CreateStoreInput,
+	counterCount = 1
 ): Promise<StoreChangeRequest> {
 	if (context.membership.role !== 'viewer') {
 		throw new Error('Only viewers submit store requests; administrators create stores directly.');
@@ -108,7 +130,7 @@ export async function submitStoreChangeRequest(
 			org_uuid: context.organisation.organisation_uuid,
 			submitted_by_organisation_user_uuid: context.membership.organisation_user_uuid,
 			request_type: 'create',
-			proposed_data: input,
+			proposed_data: { ...input, counter_count: counterCount },
 			status: 'pending',
 			created_by: user.id,
 			changed_by: user.id
@@ -337,8 +359,16 @@ export async function reviewStoreChangeRequest(
 			if (existingStoreError) throw new Error(existingStoreError.message);
 
 			if (!existingStore) {
+				const proposedCounterCount =
+					typeof request.proposed_data === 'object' &&
+					request.proposed_data !== null &&
+					'counter_count' in request.proposed_data &&
+					typeof request.proposed_data.counter_count === 'number'
+						? Math.min(Math.max(Math.trunc(request.proposed_data.counter_count), 1), 20)
+						: 1;
 				await createStore(supabase, user, context, parsed.data, {
-					sourceChangeRequestUuid: request.store_change_request_uuid
+					sourceChangeRequestUuid: request.store_change_request_uuid,
+					counterCount: proposedCounterCount
 				});
 			}
 		} else {
@@ -382,5 +412,135 @@ export async function reviewStoreChangeRequest(
 		changed_by: user.id
 	});
 
+	if (auditError) throw new Error(`Audit write failed: ${auditError.message}`);
+}
+
+export async function addStoreCounter(
+	supabase: SupabaseClient,
+	user: User,
+	context: OrganisationAppContext,
+	storeUuid: string,
+	name?: string | null
+): Promise<StoreCounter> {
+	if (!canManageOrganisation(context.membership.role)) {
+		throw new Error('Only organisation administrators can manage counters.');
+	}
+
+	const { data: store, error: storeError } = await supabase
+		.from('store')
+		.select('store_uuid')
+		.eq('store_uuid', storeUuid)
+		.eq('org_uuid', context.organisation.organisation_uuid)
+		.maybeSingle();
+	if (storeError) throw new Error(storeError.message);
+	if (!store) throw new Error('Store not found');
+
+	const { data: existing, error: existingError } = await supabase
+		.from('store_counter')
+		.select('store_counter_uuid, counter_code')
+		.eq('store_uuid', storeUuid)
+		.order('counter_code');
+	if (existingError) throw new Error(existingError.message);
+	if ((existing ?? []).length >= 20) {
+		throw new Error('A store can have at most 20 counters.');
+	}
+
+	const usedNumbers = new Set(
+		(existing ?? [])
+			.map((row) => {
+				const match = /^COUNTER-(\d+)$/.exec(row.counter_code);
+				return match ? Number(match[1]) : null;
+			})
+			.filter((value): value is number => value !== null)
+	);
+	let nextNumber = 1;
+	while (usedNumbers.has(nextNumber)) nextNumber += 1;
+
+	const counterCode = `COUNTER-${String(nextNumber).padStart(2, '0')}`;
+	const counterName = name?.trim() || `Counter ${nextNumber}`;
+	const now = new Date().toISOString();
+
+	const { data: counter, error: insertError } = await supabase
+		.from('store_counter')
+		.insert({
+			org_uuid: context.organisation.organisation_uuid,
+			store_uuid: storeUuid,
+			counter_code: counterCode,
+			name: counterName,
+			status: 'offline',
+			created_by: user.id,
+			changed_by: user.id,
+			created_at: now,
+			changed_at: now
+		})
+		.select(
+			'store_counter_uuid, org_uuid, store_uuid, counter_code, name, status, active_store_user_uuid, last_seen_at, created_at, changed_at'
+		)
+		.single();
+	if (insertError || !counter) {
+		throw new Error(insertError?.message ?? 'Unable to add counter');
+	}
+
+	const { error: auditError } = await supabase.from('organisation_audit_event').insert({
+		org_uuid: context.organisation.organisation_uuid,
+		actor_organisation_user_uuid: context.membership.organisation_user_uuid,
+		action: 'store_counter.created',
+		entity_type: 'store_counter',
+		entity_uuid: counter.store_counter_uuid,
+		after_data: counter,
+		created_by: user.id,
+		changed_by: user.id
+	});
+	if (auditError) throw new Error(`Audit write failed: ${auditError.message}`);
+
+	return counter as StoreCounter;
+}
+
+export async function deleteStoreCounter(
+	supabase: SupabaseClient,
+	user: User,
+	context: OrganisationAppContext,
+	storeUuid: string,
+	counterUuid: string
+): Promise<void> {
+	if (!canManageOrganisation(context.membership.role)) {
+		throw new Error('Only organisation administrators can manage counters.');
+	}
+
+	const { data: counters, error: listError } = await supabase
+		.from('store_counter')
+		.select(
+			'store_counter_uuid, org_uuid, store_uuid, counter_code, name, status, active_store_user_uuid, last_seen_at, created_at, changed_at'
+		)
+		.eq('store_uuid', storeUuid)
+		.eq('org_uuid', context.organisation.organisation_uuid);
+	if (listError) throw new Error(listError.message);
+
+	const counter = (counters ?? []).find((row) => row.store_counter_uuid === counterUuid);
+	if (!counter) throw new Error('Counter not found');
+	if ((counters ?? []).length <= 1) {
+		throw new Error('A store must keep at least one counter.');
+	}
+	if (counter.status === 'online') {
+		throw new Error('Sign out the active store user before deleting this counter.');
+	}
+
+	const { error: deleteError } = await supabase
+		.from('store_counter')
+		.delete()
+		.eq('store_counter_uuid', counterUuid)
+		.eq('store_uuid', storeUuid);
+	if (deleteError) throw new Error(deleteError.message);
+
+	const { error: auditError } = await supabase.from('organisation_audit_event').insert({
+		org_uuid: context.organisation.organisation_uuid,
+		actor_organisation_user_uuid: context.membership.organisation_user_uuid,
+		action: 'store_counter.deleted',
+		entity_type: 'store_counter',
+		entity_uuid: counterUuid,
+		before_data: counter,
+		created_by: user.id,
+		changed_by: user.id
+	});
 	if (auditError) throw new Error(`Audit write failed: ${auditError.message}`);
 }

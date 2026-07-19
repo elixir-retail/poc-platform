@@ -1,5 +1,9 @@
 import { error, fail } from '@sveltejs/kit';
-import { createStoreSchema, reviewStoreChangeRequestSchema } from '$lib/schemas/stores';
+import {
+	createStoreSchema,
+	reviewStoreChangeRequestSchema,
+	storeCounterCountSchema
+} from '$lib/schemas/stores';
 import { createStoreRootUserSchema } from '$lib/schemas/store-users';
 import { getOrganisationAppContext } from '$lib/server/organisation-auth';
 import { getSupabaseAdmin } from '$lib/server/supabase-admin';
@@ -65,6 +69,7 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const businessMode = String(formData.get('business_mode') ?? '');
+		const counterCount = storeCounterCountSchema.safeParse(formData.get('counter_count'));
 		const parsed = createStoreSchema.safeParse({
 			name: formData.get('name'),
 			description: formData.get('description'),
@@ -93,10 +98,17 @@ export const actions: Actions = {
 				message: parsed.error.issues[0]?.message ?? 'Check the store details.'
 			});
 		}
+		if (!counterCount.success) {
+			return fail(400, {
+				action: 'createStore',
+				success: false as const,
+				message: 'Choose between 1 and 20 counters.'
+			});
+		}
 
 		try {
 			if (context.membership.role === 'viewer') {
-				await submitStoreChangeRequest(supabase, user, context, parsed.data);
+				await submitStoreChangeRequest(supabase, user, context, parsed.data, counterCount.data);
 			} else {
 				const rootUser = createStoreRootUserSchema.safeParse({
 					display_name: formData.get('root_display_name'),
@@ -111,7 +123,9 @@ export const actions: Actions = {
 					});
 				}
 
-				const store = await createStore(supabase, user, context, parsed.data);
+				const store = await createStore(supabase, user, context, parsed.data, {
+					counterCount: counterCount.data
+				});
 				try {
 					await createStoreRootUser(supabase, user, context, store.store_uuid, rootUser.data);
 				} catch (rootError) {
