@@ -1,5 +1,13 @@
-import type { Store, StoreAppContext, StoreUser } from '$lib/types/platform';
+import type { Store, StoreAppContext, StoreUser, StoreUserRole } from '$lib/types/platform';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+
+export function canManageStoreUsers(role: StoreUserRole): boolean {
+	return role === 'root';
+}
+
+export function canManageStore(role: StoreUserRole): boolean {
+	return role === 'root' || role === 'manager';
+}
 
 export async function getStoreUser(
 	supabase: SupabaseClient,
@@ -16,7 +24,8 @@ export async function getStoreUser(
 		.eq('is_active', true)
 		.maybeSingle();
 
-	if (error || !data || data.role !== 'root') return null;
+	if (error || !data || (data.role !== 'root' && data.role !== 'manager' && data.role !== 'cashier'))
+		return null;
 	return data as StoreUser;
 }
 

@@ -8,14 +8,18 @@
 	let {
 		open = $bindable(false),
 		locale,
-		onScan
+		onScan,
+		title,
+		description,
+		readerId = 'product-barcode-reader'
 	}: {
 		open?: boolean;
 		locale: Locale;
 		onScan: (code: string) => void;
+		title?: string;
+		description?: string;
+		readerId?: string;
 	} = $props();
-
-	const readerId = 'product-barcode-reader';
 
 	let scanner: Html5Qrcode | null = null;
 	let starting = $state(false);
@@ -106,8 +110,10 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-lg" showCloseButton={!starting}>
 		<Dialog.Header>
-			<Dialog.Title>{t(locale, 'storeApp.products.scanTitle')}</Dialog.Title>
-			<Dialog.Description>{t(locale, 'storeApp.products.scanDescription')}</Dialog.Description>
+			<Dialog.Title>{title ?? t(locale, 'storeApp.products.scanTitle')}</Dialog.Title>
+			<Dialog.Description>
+				{description ?? t(locale, 'storeApp.products.scanDescription')}
+			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="flex flex-col gap-3">

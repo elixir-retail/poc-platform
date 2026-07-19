@@ -12,6 +12,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import * as Table from '$lib/components/ui/table';
+	import { resolveScannedProductCode } from '$lib/barcodes';
 	import { t, type Locale, type MessageKey } from '$lib/i18n';
 	import type { ProductType, StoreProduct } from '$lib/types/platform';
 	import type { ActionData, PageData } from './$types';
@@ -23,6 +24,7 @@
 	let scannerOpen = $state(false);
 	let createOpen = $state(false);
 	let createDefaults = $state<{ sku?: string | null; gtin?: string | null } | null>(null);
+	let scannedCodeLabel = $state<string | null>(null);
 	let search = $state('');
 
 	const filteredProducts = $derived.by(() => {
@@ -47,6 +49,7 @@
 		if (form?.success) {
 			createOpen = false;
 			createDefaults = null;
+			scannedCodeLabel = null;
 		}
 	});
 
@@ -82,6 +85,7 @@
 
 	function openManualCreate() {
 		createDefaults = null;
+		scannedCodeLabel = null;
 		createOpen = true;
 	}
 
@@ -90,17 +94,13 @@
 	}
 
 	function handleScannedCode(code: string) {
-		const normalized = code.trim();
-		const digitsOnly = normalized.replace(/\D/g, '');
-		if (/^\d{8,14}$/.test(normalized) || /^\d{8,14}$/.test(digitsOnly)) {
-			createDefaults = {
-				gtin: /^\d{8,14}$/.test(normalized) ? normalized : digitsOnly
-			};
-		} else {
-			createDefaults = {
-				sku: normalized.slice(0, 50).toUpperCase()
-			};
-		}
+		const resolved = resolveScannedProductCode(code);
+		if (!resolved.display) return;
+		createDefaults = {
+			sku: resolved.sku,
+			gtin: resolved.gtin
+		};
+		scannedCodeLabel = resolved.display;
 		createOpen = true;
 	}
 </script>
@@ -324,4 +324,5 @@
 	{locale}
 	currencyCode={data.storeContext.store.currency_code}
 	defaults={createDefaults}
+	scannedCode={scannedCodeLabel}
 />

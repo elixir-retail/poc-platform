@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ parent, locals: { supabase } }) => 
 	const { data, error: transactionError } = await supabase
 		.from('store_transaction')
 		.select(
-			'store_transaction_uuid, org_uuid, store_uuid, transaction_code, channel, status, occurred_at, currency_code, gross_amount_cents, payment_method, external_reference, created_at, store(store_code, name)'
+			'store_transaction_uuid, org_uuid, store_uuid, transaction_code, channel, status, occurred_at, currency_code, gross_amount_cents, payment_method, external_reference, direction, entry_type, notes, category, created_at, store(store_code, name)'
 		)
 		.eq('org_uuid', orgUuid)
 		.order('occurred_at', { ascending: false });

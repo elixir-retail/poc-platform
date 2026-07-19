@@ -130,3 +130,53 @@ export function normalizeBarcodeValue(raw: string, format: BarcodeFormat): Norma
 
 	return { value: trimmed, corrected: false, error: null };
 }
+
+/** Turn a camera/scanner payload into catalog fields we can store and match. */
+export function resolveScannedProductCode(raw: string): {
+	sku: string | null;
+	gtin: string | null;
+	display: string;
+} {
+	const trimmed = raw.trim();
+	if (!trimmed) {
+		return { sku: null, gtin: null, display: '' };
+	}
+
+	const digitsOnly = onlyDigits(trimmed);
+	if (/^\d{8,14}$/.test(trimmed)) {
+		return {
+			sku: trimmed.slice(0, 50).toUpperCase(),
+			gtin: trimmed,
+			display: trimmed
+		};
+	}
+	if (/^\d{8,14}$/.test(digitsOnly)) {
+		return {
+			sku: digitsOnly.slice(0, 50).toUpperCase(),
+			gtin: digitsOnly,
+			display: digitsOnly
+		};
+	}
+
+	return {
+		sku: trimmed.slice(0, 50).toUpperCase(),
+		gtin: null,
+		display: trimmed
+	};
+}
+
+/** Match a scanned code against sku or gtin, including digit-only variants. */
+export function productCodeMatches(
+	code: string,
+	product: { sku: string; gtin: string | null }
+): boolean {
+	const normalized = code.trim().toLowerCase();
+	if (!normalized) return false;
+	const digits = onlyDigits(normalized);
+
+	if (product.sku.toLowerCase() === normalized) return true;
+	if (product.gtin && product.gtin.toLowerCase() === normalized) return true;
+	if (digits && product.gtin && onlyDigits(product.gtin) === digits) return true;
+	if (digits && onlyDigits(product.sku) === digits && digits.length >= 8) return true;
+	return false;
+}

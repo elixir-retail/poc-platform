@@ -9,11 +9,16 @@
 	let { data }: { data: PageData } = $props();
 	const locale = $derived(data.locale as Locale);
 
-	function formatAmount(amountCents: number, currencyCode: string) {
-		return new Intl.NumberFormat(undefined, {
+	function formatAmount(amountCents: number, currencyCode: string, direction: 'in' | 'out') {
+		const formatted = new Intl.NumberFormat(undefined, {
 			style: 'currency',
 			currency: currencyCode
 		}).format(amountCents / 100);
+		return direction === 'out' ? `−${formatted}` : formatted;
+	}
+
+	function entryLabel(entryType: string) {
+		return t(locale, `storeApp.expenses.entry.${entryType}` as MessageKey);
 	}
 </script>
 
@@ -41,6 +46,7 @@
 					<Table.Header>
 						<Table.Row>
 							<Table.Head class="ps-6">{t(locale, 'orgApp.transactions.code')}</Table.Head>
+							<Table.Head>{t(locale, 'storeApp.transactions.type')}</Table.Head>
 							<Table.Head>{t(locale, 'orgApp.transactions.channel')}</Table.Head>
 							<Table.Head>{t(locale, 'orgApp.transactions.amount')}</Table.Head>
 							<Table.Head>{t(locale, 'orgApp.transactions.payment')}</Table.Head>
@@ -55,14 +61,25 @@
 									{transaction.transaction_code}
 								</Table.Cell>
 								<Table.Cell>
+									<Badge variant={transaction.direction === 'out' ? 'destructive' : 'secondary'}>
+										{entryLabel(transaction.entry_type)}
+									</Badge>
+								</Table.Cell>
+								<Table.Cell>
 									<Badge variant={transaction.channel === 'online' ? 'default' : 'secondary'}>
 										{t(locale, `orgApp.transactions.${transaction.channel}` as MessageKey)}
 									</Badge>
 								</Table.Cell>
 								<Table.Cell class="font-medium">
-									{formatAmount(transaction.gross_amount_cents, transaction.currency_code)}
+									{formatAmount(
+										transaction.gross_amount_cents,
+										transaction.currency_code,
+										transaction.direction
+									)}
 								</Table.Cell>
-								<Table.Cell class="capitalize">{transaction.payment_method}</Table.Cell>
+								<Table.Cell class="capitalize"
+									>{transaction.payment_method.replaceAll('_', ' ')}</Table.Cell
+								>
 								<Table.Cell>
 									<Badge
 										variant={transaction.status === 'failed'
@@ -83,7 +100,7 @@
 							</Table.Row>
 						{:else}
 							<Table.Row>
-								<Table.Cell colspan={6} class="h-32 text-center text-muted-foreground">
+								<Table.Cell colspan={7} class="h-32 text-center text-muted-foreground">
 									{t(locale, 'orgApp.transactions.empty')}
 								</Table.Cell>
 							</Table.Row>

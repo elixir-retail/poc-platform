@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import BarcodeIcon from '@lucide/svelte/icons/barcode';
+	import LinkIcon from '@lucide/svelte/icons/link';
 	import PrinterIcon from '@lucide/svelte/icons/printer';
 	import BarcodeLabelPreview from '$lib/components/store/barcode-label-preview.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -7,11 +10,12 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as Select from '$lib/components/ui/select';
-	import { type BarcodeFormat } from '$lib/barcodes';
+	import { normalizeBarcodeValue, type BarcodeFormat } from '$lib/barcodes';
 	import { t, type Locale, type MessageKey } from '$lib/i18n';
-	import type { PageData } from './$types';
+	import { toast } from 'svelte-sonner';
+	import type { ActionData, PageData } from './$types';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	const locale = $derived(data.locale as Locale);
 	const storeName = $derived(data.storeContext.store.name);
@@ -53,6 +57,12 @@
 	);
 	const activeProducts = $derived(data.products.filter((product) => product.status === 'active'));
 	const canPrint = $derived(barcodeValue.trim().length > 0);
+	const normalizedForLink = $derived(normalizeBarcodeValue(barcodeValue, format));
+	const canLinkBarcode = $derived(
+		selectedProductUuid !== 'custom' &&
+			!normalizedForLink.error &&
+			/^\d{8,14}$/.test(normalizedForLink.value)
+	);
 	const priceLabel = $derived(
 		priceCents === null
 			? ''
@@ -69,6 +79,14 @@
 		return product
 			? `${product.name} · ${product.sku}`
 			: t(locale, 'storeApp.barcodes.chooseProduct');
+	});
+
+	$effect(() => {
+		if (form?.success && form.message) {
+			toast.success(form.message);
+		} else if (form && form.success === false && form.message) {
+			toast.error(form.message);
+		}
 	});
 
 	$effect(() => {
@@ -133,18 +151,20 @@
 	</div>
 
 	<div class="grid gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-		<Card.Root class="print:hidden">
+		<Card.Root class="min-w-0 print:hidden">
 			<Card.Header>
 				<Card.Title>{t(locale, 'storeApp.barcodes.configure')}</Card.Title>
 				<Card.Description>{t(locale, 'storeApp.barcodes.configureHint')}</Card.Description>
 			</Card.Header>
-			<Card.Content class="grid gap-5">
-				<div class="flex flex-col gap-2">
+			<Card.Content class="grid min-w-0 gap-5">
+				<div class="flex min-w-0 flex-col gap-2">
 					<Label>{t(locale, 'storeApp.barcodes.product')}</Label>
 					<input type="hidden" value={selectedProductUuid} />
 					<Select.Root type="single" bind:value={selectedProductUuid}>
-						<Select.Trigger class="w-full">{productTriggerLabel}</Select.Trigger>
-						<Select.Content>
+						<Select.Trigger class="w-full min-w-0">
+							<span class="truncate">{productTriggerLabel}</span>
+						</Select.Trigger>
+						<Select.Content class="max-w-[min(100vw-2rem,24rem)]">
 							<Select.Item value="custom" label={t(locale, 'storeApp.barcodes.customValue')} />
 							{#each activeProducts as product (product.store_product_uuid)}
 								<Select.Item
@@ -235,22 +255,51 @@
 					{t(locale, 'storeApp.barcodes.printerHint')}
 				</div>
 
-				<Button class="w-full" disabled={!canPrint} onclick={sendToStickerPrinter}>
-					<PrinterIcon class="size-4" />
-					{t(locale, 'storeApp.barcodes.sendToPrinter')}
-				</Button>
+				<div class="grid gap-2">
+					<Button class="w-full" disabled={!canPrint} onclick={sendToStickerPrinter}>
+						<PrinterIcon class="size-4" />
+						{t(locale, 'storeApp.barcodes.sendToPrinter')}
+					</Button>
+					{#if selectedProductUuid !== 'custom'}
+						<form
+							method="POST"
+							action="?/linkBarcode"
+							use:enhance={() => {
+								return async ({ result, update }) => {
+									await update();
+									if (result.type === 'success') {
+										await invalidateAll();
+									}
+								};
+							}}
+							class="grid"
+						>
+							<input type="hidden" name="store_product_uuid" value={selectedProductUuid} />
+							<input type="hidden" name="gtin" value={normalizedForLink.value} />
+							<Button type="submit" variant="outline" class="w-full" disabled={!canLinkBarcode}>
+								<LinkIcon class="size-4" />
+								{t(locale, 'storeApp.barcodes.linkToProduct')}
+							</Button>
+						</form>
+						{#if !canLinkBarcode}
+							<p class="text-xs text-muted-foreground">
+								{t(locale, 'storeApp.barcodes.linkHint')}
+							</p>
+						{/if}
+					{/if}
+				</div>
 			</Card.Content>
 		</Card.Root>
 
-		<div class="flex flex-col gap-4">
-			<Card.Root class="print:hidden">
+		<div class="flex min-w-0 flex-col gap-4">
+			<Card.Root class="min-w-0 print:hidden">
 				<Card.Header>
 					<Card.Title>{t(locale, 'storeApp.barcodes.preview')}</Card.Title>
 					<Card.Description>{t(locale, 'storeApp.barcodes.previewHint')}</Card.Description>
 				</Card.Header>
-				<Card.Content>
+				<Card.Content class="min-w-0">
 					<div
-						class="flex min-h-72 items-center justify-center rounded-xl border border-border p-6"
+						class="flex min-h-72 items-center justify-center overflow-hidden rounded-xl border border-border p-6"
 						style="background:
 							radial-gradient(circle at top, color-mix(in oklab, var(--color-muted) 85%, transparent), transparent 58%),
 							linear-gradient(180deg, color-mix(in oklab, var(--color-card) 90%, var(--color-muted)), var(--color-card));"

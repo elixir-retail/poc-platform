@@ -14,13 +14,15 @@
 		locale,
 		currencyCode,
 		product = null,
-		defaults = null
+		defaults = null,
+		scannedCode = null
 	}: {
 		open?: boolean;
 		locale: Locale;
 		currencyCode: string;
 		product?: StoreProduct | null;
 		defaults?: { sku?: string | null; gtin?: string | null } | null;
+		scannedCode?: string | null;
 	} = $props();
 
 	let productType = $state<ProductType>('standard');
@@ -58,7 +60,17 @@
 		action={isEdit ? '?/updateProduct' : '?/createProduct'}
 		class="grid gap-6"
 	>
-		{#if !isEdit && (defaults?.gtin || defaults?.sku)}
+		{#if !isEdit && scannedCode}
+			<div class="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+				<p class="text-muted-foreground">{t(locale, 'storeApp.products.scannedCode')}</p>
+				<p class="mt-1 font-mono text-sm font-medium text-foreground">{scannedCode}</p>
+				{#if defaults?.gtin}
+					<p class="mt-1 text-xs text-muted-foreground">
+						{t(locale, 'storeApp.products.scannedGtinWired')}
+					</p>
+				{/if}
+			</div>
+		{:else if !isEdit && (defaults?.gtin || defaults?.sku)}
 			<p
 				class="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
 			>

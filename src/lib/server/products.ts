@@ -1,4 +1,5 @@
 import type { CreateProductInput } from '$lib/schemas/products';
+import { canManageStore } from '$lib/server/store-auth';
 import type { StoreAppContext, StoreProduct } from '$lib/types/platform';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
@@ -41,8 +42,8 @@ export async function createStoreProduct(
 	context: StoreAppContext,
 	input: CreateProductInput
 ): Promise<StoreProduct> {
-	if (context.membership.role !== 'root') {
-		throw new Error('Only the store root user can add products.');
+	if (!canManageStore(context.membership.role)) {
+		throw new Error('Only store admins and managers can add products.');
 	}
 	if (context.store.business_mode === 'service') {
 		throw new Error('Products are only available to retail and hybrid stores.');
@@ -112,8 +113,8 @@ export async function updateStoreProduct(
 	input: CreateProductInput,
 	status: StoreProduct['status']
 ): Promise<StoreProduct> {
-	if (context.membership.role !== 'root') {
-		throw new Error('Only the store root user can edit products.');
+	if (!canManageStore(context.membership.role)) {
+		throw new Error('Only store admins and managers can edit products.');
 	}
 	if (context.store.business_mode === 'service') {
 		throw new Error('Products are only available to retail and hybrid stores.');
@@ -152,6 +153,45 @@ export async function updateStoreProduct(
 			throw new Error('SKU, GTIN, IMEI, and serial numbers must be unique within the store.');
 		}
 		throw new Error(error?.message ?? 'Unable to update product');
+	}
+
+	return data as StoreProduct;
+}
+
+export async function linkProductBarcode(
+	supabase: SupabaseClient,
+	user: User,
+	context: StoreAppContext,
+	productUuid: string,
+	gtin: string
+): Promise<StoreProduct> {
+	if (!canManageStore(context.membership.role)) {
+		throw new Error('Only store admins and managers can edit products.');
+	}
+	if (context.store.business_mode === 'service') {
+		throw new Error('Products are only available to retail and hybrid stores.');
+	}
+	if (!/^\d{8,14}$/.test(gtin)) {
+		throw new Error('Barcode must be 8 to 14 digits to save as GTIN.');
+	}
+
+	const { data, error } = await supabase
+		.from('store_product')
+		.update({
+			gtin,
+			changed_by: user.id,
+			changed_at: new Date().toISOString()
+		})
+		.eq('store_uuid', context.store.store_uuid)
+		.eq('store_product_uuid', productUuid)
+		.select(PRODUCT_COLUMNS)
+		.single();
+
+	if (error || !data) {
+		if (error?.code === '23505') {
+			throw new Error('That barcode is already linked to another product.');
+		}
+		throw new Error(error?.message ?? 'Unable to link barcode');
 	}
 
 	return data as StoreProduct;

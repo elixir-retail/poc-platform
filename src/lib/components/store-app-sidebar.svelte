@@ -12,6 +12,7 @@
 	import ShoppingBagIcon from '@lucide/svelte/icons/shopping-bag';
 	import StoreIcon from '@lucide/svelte/icons/store';
 	import UsersIcon from '@lucide/svelte/icons/users';
+	import WalletIcon from '@lucide/svelte/icons/wallet';
 	import WrenchIcon from '@lucide/svelte/icons/wrench';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -23,6 +24,7 @@
 	type StoreRoute =
 		| '/store'
 		| '/store/billing'
+		| '/store/expenses'
 		| '/store/transactions'
 		| '/store/counters'
 		| '/store/users'
@@ -56,17 +58,27 @@
 	const showRetail = $derived(mode === 'retail' || mode === 'hybrid');
 	const showService = $derived(mode === 'service' || mode === 'hybrid');
 
-	const mainItems: NavItem[] = [
-		{ titleKey: 'storeApp.dashboard', href: '/store', icon: LayoutDashboardIcon },
-		{ titleKey: 'storeApp.billing', href: '/store/billing', icon: CreditCardIcon },
-		{ titleKey: 'storeApp.transactions', href: '/store/transactions', icon: ReceiptIcon },
-		{ titleKey: 'storeApp.counters', href: '/store/counters', icon: MonitorIcon },
-		{ titleKey: 'storeApp.users', href: '/store/users', icon: UsersIcon },
-		{ titleKey: 'storeApp.customers', href: '/store/customers', icon: ShoppingBagIcon },
-		{ titleKey: 'storeApp.reports', href: '/store/reports', icon: ClipboardListIcon },
-		{ titleKey: 'storeApp.devices', href: '/store/devices', icon: MonitorIcon },
-		{ titleKey: 'storeApp.settings', href: '/store/settings', icon: SettingsIcon }
-	];
+	const mainItems = $derived.by(() => {
+		const items: NavItem[] = [
+			{ titleKey: 'storeApp.dashboard', href: '/store', icon: LayoutDashboardIcon }
+		];
+		if (showRetail) {
+			items.push(
+				{ titleKey: 'storeApp.billing', href: '/store/billing', icon: CreditCardIcon },
+				{ titleKey: 'storeApp.expenses', href: '/store/expenses', icon: WalletIcon }
+			);
+		}
+		items.push(
+			{ titleKey: 'storeApp.transactions', href: '/store/transactions', icon: ReceiptIcon },
+			{ titleKey: 'storeApp.counters', href: '/store/counters', icon: MonitorIcon },
+			{ titleKey: 'storeApp.users', href: '/store/users', icon: UsersIcon },
+			{ titleKey: 'storeApp.customers', href: '/store/customers', icon: ShoppingBagIcon },
+			{ titleKey: 'storeApp.reports', href: '/store/reports', icon: ClipboardListIcon },
+			{ titleKey: 'storeApp.devices', href: '/store/devices', icon: MonitorIcon },
+			{ titleKey: 'storeApp.settings', href: '/store/settings', icon: SettingsIcon }
+		);
+		return items;
+	});
 
 	const retailItems: NavItem[] = [
 		{ titleKey: 'storeApp.products', href: '/store/products', icon: PackageIcon },

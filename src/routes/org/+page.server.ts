@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ parent, locals: { supabase } }) => 
 		supabase
 			.from('store_transaction')
 			.select(
-				'store_transaction_uuid, store_uuid, transaction_code, channel, status, occurred_at, currency_code, gross_amount_cents, payment_method, external_reference, org_uuid, created_at, store(store_code, name)'
+				'store_transaction_uuid, store_uuid, transaction_code, channel, status, occurred_at, currency_code, gross_amount_cents, payment_method, external_reference, direction, entry_type, notes, category, org_uuid, created_at, store(store_code, name)'
 			)
 			.eq('org_uuid', orgUuid)
 			.order('occurred_at', { ascending: false }),

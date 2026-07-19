@@ -88,22 +88,28 @@
 		style="background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0); background-size: 8px 8px;"
 	></div>
 
-	<div class="relative flex h-full flex-col justify-between gap-1 p-2.5">
-		<div class="flex items-start justify-between gap-2">
-			<div class="min-w-0">
+	<div class="relative flex h-full min-h-0 flex-col justify-between gap-1 overflow-hidden p-2.5">
+		<div class="flex shrink-0 items-start justify-between gap-2 overflow-hidden">
+			<div class="min-w-0 flex-1 overflow-hidden">
 				<p class="truncate text-[8px] font-medium tracking-[0.18em] text-slate-500 uppercase">
 					{storeName}
 				</p>
-				<p class="mt-0.5 line-clamp-2 text-[11px] leading-tight font-semibold text-slate-900">
+				<p
+					class="mt-0.5 line-clamp-2 overflow-hidden text-[11px] leading-tight font-semibold break-words text-slate-900"
+				>
 					{productName || 'Product label'}
 				</p>
 			</div>
 			{#if priceLabel}
-				<p class="shrink-0 text-[12px] font-bold tracking-tight text-slate-900">{priceLabel}</p>
+				<p
+					class="max-w-[42%] shrink-0 truncate text-end text-[12px] font-bold tracking-tight text-slate-900"
+				>
+					{priceLabel}
+				</p>
 			{/if}
 		</div>
 
-		<div class="flex min-h-0 flex-1 items-center justify-center">
+		<div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
 			<svg
 				bind:this={svgEl}
 				id={barcodeId}
@@ -115,12 +121,12 @@
 					Enter a code to preview the sticker
 				</p>
 			{:else if errorMessage}
-				<p class="px-2 text-center text-[10px] text-slate-400">{errorMessage}</p>
+				<p class="px-2 text-center text-[10px] break-words text-slate-400">{errorMessage}</p>
 			{/if}
 		</div>
 
 		{#if sku}
-			<p class="truncate text-center font-mono text-[8px] tracking-wide text-slate-500">
+			<p class="shrink-0 truncate text-center font-mono text-[8px] tracking-wide text-slate-500">
 				{sku}
 			</p>
 		{/if}

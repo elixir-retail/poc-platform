@@ -109,6 +109,8 @@ export type StoreChangeRequest = {
 	submitter?: Pick<OrganisationUser, 'display_name' | 'email'> | null;
 };
 
+export type StoreUserRole = 'root' | 'manager' | 'cashier';
+
 export type StoreUser = {
 	store_user_uuid: string;
 	org_uuid: string;
@@ -116,7 +118,7 @@ export type StoreUser = {
 	user_uuid: string;
 	email: string;
 	display_name: string;
-	role: 'root';
+	role: StoreUserRole;
 	is_active: boolean;
 	created_at: string;
 	changed_at: string;
@@ -190,6 +192,14 @@ export type StoreAppContext = {
 	};
 };
 
+export type StoreTransactionDirection = 'in' | 'out';
+export type StoreTransactionEntryType =
+	| 'sale'
+	| 'cash_intake'
+	| 'expense'
+	| 'upi_intake'
+	| 'card_intake';
+
 export type StoreTransaction = {
 	store_transaction_uuid: string;
 	org_uuid: string;
@@ -202,8 +212,94 @@ export type StoreTransaction = {
 	gross_amount_cents: number;
 	payment_method: string;
 	external_reference: string | null;
+	direction: StoreTransactionDirection;
+	entry_type: StoreTransactionEntryType;
+	notes: string | null;
+	category: string | null;
 	created_at: string;
 	store?: Pick<Store, 'store_code' | 'name'> | null;
+};
+
+export type StoreBillStatus = 'open' | 'held' | 'completed' | 'void';
+export type StoreBillPaymentMethod = 'cash' | 'card' | 'upi' | 'voucher';
+
+export type StoreBillLine = {
+	store_bill_line_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	store_bill_uuid: string;
+	store_product_uuid: string | null;
+	sku: string;
+	product_name: string;
+	unit_price_cents: number;
+	quantity: number;
+	line_total_cents: number;
+	created_at: string;
+	changed_at: string;
+};
+
+export type StoreBillPayment = {
+	store_bill_payment_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	store_bill_uuid: string;
+	payment_method: StoreBillPaymentMethod;
+	amount_cents: number;
+	reference: string | null;
+	created_at: string;
+	changed_at: string;
+};
+
+export type StoreBill = {
+	store_bill_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	store_counter_uuid: string | null;
+	store_customer_uuid?: string | null;
+	bill_number: number;
+	status: StoreBillStatus;
+	customer_name: string | null;
+	customer_phone: string | null;
+	currency_code: string;
+	notes: string | null;
+	completed_at: string | null;
+	created_at: string;
+	changed_at: string;
+	lines: StoreBillLine[];
+	payments: StoreBillPayment[];
+};
+
+export type StoreCustomer = {
+	store_customer_uuid: string;
+	org_uuid: string;
+	store_uuid: string;
+	full_name: string;
+	phone: string;
+	email: string | null;
+	address_line1: string | null;
+	address_line2: string | null;
+	city: string | null;
+	state: string | null;
+	postal_code: string | null;
+	country: string | null;
+	notes: string | null;
+	status: 'active' | 'inactive';
+	created_at: string;
+	changed_at: string;
+};
+
+export type PosCatalogProduct = Pick<
+	StoreProduct,
+	| 'store_product_uuid'
+	| 'sku'
+	| 'name'
+	| 'brand'
+	| 'gtin'
+	| 'price_cents'
+	| 'currency_code'
+	| 'status'
+> & {
+	quantity_on_hand: number;
 };
 
 export type OrganisationAuditEvent = {

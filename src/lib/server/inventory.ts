@@ -1,4 +1,5 @@
 import type { UpdateInventoryInput } from '$lib/schemas/inventory';
+import { canManageStore } from '$lib/server/store-auth';
 import type { StoreAppContext, StoreInventory } from '$lib/types/platform';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
@@ -25,8 +26,8 @@ export async function updateStoreInventory(
 	context: StoreAppContext,
 	input: UpdateInventoryInput
 ): Promise<void> {
-	if (context.membership.role !== 'root') {
-		throw new Error('Only the store root user can update inventory.');
+	if (!canManageStore(context.membership.role)) {
+		throw new Error('Only store admins and managers can update inventory.');
 	}
 
 	const now = new Date().toISOString();
