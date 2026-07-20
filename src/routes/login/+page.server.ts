@@ -12,7 +12,9 @@ export const load: PageServerLoad = async ({ locals: { safeGetSession, supabase 
 };
 
 export const actions: Actions = {
-	login: async ({ request, locals: { supabase } }) => {
+	// Default action avoids `?/login` in the URL. Netlify appends request query
+	// strings onto 303 Location headers, which breaks post-login form posts.
+	default: async ({ request, locals: { supabase } }) => {
 		const formData = await request.formData();
 		const parsed = loginSchema.safeParse({
 			email: formData.get('email'),
