@@ -65,6 +65,14 @@ export async function resolveAuthenticatedDestination(
 	const profile = await getPlatformProfile(supabase, user);
 	if (profile) return '/';
 
+	const accountType = user.user_metadata?.account_type;
+	if (accountType === 'store') {
+		const storeUser = await getStoreUser(supabase, user);
+		if (storeUser) {
+			return user.user_metadata?.must_change_password ? '/store/change-password' : '/store';
+		}
+	}
+
 	const organisationUser = await getOrganisationUser(supabase, user);
 	if (organisationUser) {
 		return user.user_metadata?.must_change_password ? '/org/change-password' : '/org';

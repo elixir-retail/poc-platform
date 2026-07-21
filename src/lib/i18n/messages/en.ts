@@ -314,7 +314,7 @@ export const en = {
 	'storeApp.counter.offline': 'Offline',
 	'storeApp.users.title': 'Store users',
 	'storeApp.users.description': 'Manage cashiers and staff who can operate this store.',
-	'storeApp.users.loginHint': 'Staff sign in at /store with their email and temporary password.',
+	'storeApp.users.loginHint': 'Staff sign in at /login with their email and temporary password.',
 	'storeApp.users.list': 'Team members',
 	'storeApp.users.count': '{count} users',
 	'storeApp.users.add': 'Add user',

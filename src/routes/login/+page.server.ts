@@ -26,7 +26,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+		const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
 		if (error) {
 			return fail(400, {
@@ -35,6 +35,16 @@ export const actions: Actions = {
 			});
 		}
 
-		redirect(303, await resolveAuthenticatedDestination(supabase, data.user));
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
+		if (!user) {
+			return fail(400, {
+				email: parsed.data.email,
+				errorCode: 'generic' as const
+			});
+		}
+
+		redirect(303, await resolveAuthenticatedDestination(supabase, user));
 	}
 };

@@ -15,6 +15,17 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 	const profile = await getPlatformProfile(supabase, user);
 
 	if (!profile) {
+		const accountType = user?.user_metadata?.account_type;
+		if (accountType === 'store') {
+			const storeUser = await getStoreUser(supabase, user);
+			if (storeUser) {
+				redirect(
+					303,
+					user?.user_metadata?.must_change_password ? '/store/change-password' : '/store'
+				);
+			}
+		}
+
 		const organisationUser = await getOrganisationUser(supabase, user);
 		if (organisationUser) {
 			redirect(303, user?.user_metadata?.must_change_password ? '/org/change-password' : '/org');

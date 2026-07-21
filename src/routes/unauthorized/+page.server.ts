@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { getOrganisationUser } from '$lib/server/organisation-auth';
 import { getPlatformProfile } from '$lib/server/platform-auth';
+import { getStoreUser } from '$lib/server/store-auth';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { safeGetSession, supabase } }) => {
@@ -12,7 +13,15 @@ export const load: PageServerLoad = async ({ locals: { safeGetSession, supabase 
 
 	const profile = await getPlatformProfile(supabase, user);
 	if (profile) {
-		redirect(303, '/onboarding');
+		redirect(303, '/');
+	}
+
+	const storeUser = await getStoreUser(supabase, user);
+	if (storeUser) {
+		redirect(
+			303,
+			user?.user_metadata?.must_change_password ? '/store/change-password' : '/store'
+		);
 	}
 
 	const organisationUser = await getOrganisationUser(supabase, user);

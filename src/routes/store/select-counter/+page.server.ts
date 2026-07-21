@@ -27,7 +27,7 @@ export const actions: Actions = {
 			.eq('store_uuid', context.store.store_uuid)
 			.maybeSingle();
 		if (counterError) return fail(400, { success: false as const, message: counterError.message });
-		if (!counter) return fail(404, { success: false as const, message: 'Counter not found.' });
+		if (!counter) return fail(400, { success: false as const, message: 'Counter not found.' });
 		if (
 			counter.status === 'online' &&
 			counter.active_store_user_uuid !== context.membership.store_user_uuid
