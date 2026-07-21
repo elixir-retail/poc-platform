@@ -38,7 +38,7 @@
 			<Card.Description>{t(locale, 'login.description')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<form method="POST" class="flex flex-col gap-4">
+			<form method="POST" action="?/login" class="flex flex-col gap-4">
 				{#if errorKey}
 					<p class="text-sm text-destructive" role="alert">{t(locale, errorKey)}</p>
 				{/if}
