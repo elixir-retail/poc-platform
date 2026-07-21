@@ -31,7 +31,7 @@
 			</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<form method="POST" id="select-counter-form" class="grid gap-4">
+			<form method="POST" action="/store/select-counter" id="select-counter-form" class="grid gap-4">
 				{#if form?.message}
 					<div class="rounded-lg border border-border p-3 text-sm text-destructive" role="alert">
 						{form.message}
